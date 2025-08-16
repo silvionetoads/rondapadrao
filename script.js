@@ -1,102 +1,101 @@
-let timerElement = document.getElementById("timer");
-let statusElement = document.getElementById("status");
-let startButton = document.getElementById("startButton");
-let resetButton = document.getElementById("resetButton");
-let clearHistoryButton = document.getElementById("clearHistory");
-let historyList = document.getElementById("historyList");
-let alertSound = document.getElementById("alertSound");
+document.addEventListener("DOMContentLoaded", () => {
+  const timerDisplay = document.getElementById("timerDisplay");
+  const startBtn = document.getElementById("startBtn");
+  const pauseBtn = document.getElementById("pauseBtn");
+  const resetBtn = document.getElementById("resetBtn");
+  const setTimerBtn = document.getElementById("setTimerBtn");
+  const timeInput = document.getElementById("timeInput");
+  const alertMessage = document.getElementById("alertMessage");
+  const confirmRondaBtn = document.getElementById("confirmRondaBtn");
+  const historyList = document.getElementById("historyList");
+  const clearHistoryBtn = document.getElementById("clearHistoryBtn");
+  const printHistoryBtn = document.getElementById("printHistoryBtn");
+  const alertSound = document.getElementById("alertSound");
 
-let countdown;
-let stopwatch;
-let timeDeclared = 60; // valor padrão de ronda (60s)
-let remainingTime;
-let elapsedTime = 0;
-let isCountingDown = false;
-let isCountingUp = false;
+  let timer;
+  let timeRemaining = 0;
+  let isRunning = false;
 
-// Carregar histórico salvo
-window.onload = () => {
-    let savedHistory = JSON.parse(localStorage.getItem("rondas")) || [];
-    savedHistory.forEach(item => addToHistory(item));
-};
+  function updateDisplay() {
+    let minutes = Math.floor(timeRemaining / 60);
+    let seconds = timeRemaining % 60;
+    timerDisplay.textContent = 
+      `${minutes.toString().padStart(2,"0")}:${seconds.toString().padStart(2,"0")}`;
+  }
 
-function updateTimerDisplay(time) {
-    let minutes = Math.floor(time / 60);
-    let seconds = time % 60;
-    timerElement.textContent = 
-        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2,'0')}`;
-}
+  function startTimer() {
+    if (timeRemaining > 0 && !isRunning) {
+      isRunning = true;
+      timer = setInterval(() => {
+        timeRemaining--;
+        updateDisplay();
 
-function startCountdown() {
-    isCountingDown = true;
-    remainingTime = timeDeclared;
-    updateTimerDisplay(remainingTime);
-    statusElement.textContent = "⏳ Contagem regressiva...";
-    clearInterval(stopwatch);
-
-    countdown = setInterval(() => {
-        remainingTime--;
-        updateTimerDisplay(remainingTime);
-
-        if (remainingTime <= Math.floor(timeDeclared * 0.1)) {
-            alertSound.play(); // alerta sonoro
+        if (timeRemaining <= 0) {
+          clearInterval(timer);
+          isRunning = false;
+          triggerAlert();
         }
+      }, 1000);
+    }
+  }
 
-        if (remainingTime <= 0) {
-            clearInterval(countdown);
-            startStopwatch();
-        }
-    }, 1000);
-}
+  function pauseTimer() {
+    clearInterval(timer);
+    isRunning = false;
+  }
 
-function startStopwatch() {
-    isCountingDown = false;
-    isCountingUp = true;
-    elapsedTime = 0;
-    statusElement.textContent = "🔵 Ronda em andamento...";
+  function resetTimer() {
+    pauseTimer();
+    timeRemaining = 0;
+    updateDisplay();
+  }
 
-    stopwatch = setInterval(() => {
-        elapsedTime++;
-        updateTimerDisplay(elapsedTime);
-    }, 1000);
-}
+  function setTimer() {
+    const minutes = parseInt(timeInput.value);
+    if (!isNaN(minutes) && minutes > 0) {
+      timeRemaining = minutes * 60;
+      updateDisplay();
+    }
+  }
 
-function resetTimer() {
-    clearInterval(countdown);
-    clearInterval(stopwatch);
-    isCountingDown = false;
-    isCountingUp = false;
-    elapsedTime = 0;
-    updateTimerDisplay(0);
-    statusElement.textContent = "⚪ Cronômetro zerado.";
-}
+  function triggerAlert() {
+    alertMessage.classList.remove("hidden");
+    alertSound.play();
+  }
 
-function addToHistory(entry) {
-    let li = document.createElement("li");
-    li.textContent = entry;
+  function confirmRonda() {
+    const now = new Date();
+    const timestamp = now.toLocaleString("pt-BR");
+    const li = document.createElement("li");
+    li.textContent = `Ronda iniciada em: ${timestamp}`;
     historyList.appendChild(li);
-}
 
-function saveHistory(entry) {
-    let history = JSON.parse(localStorage.getItem("rondas")) || [];
-    history.push(entry);
-    localStorage.setItem("rondas", JSON.stringify(history));
-}
+    alertMessage.classList.add("hidden");
+    setTimer();
+  }
 
-startButton.addEventListener("click", () => {
-    if (!isCountingDown && !isCountingUp) {
-        let now = new Date().toLocaleTimeString();
-        saveHistory(`Ronda programada às ${now}`);
-        addToHistory(`Ronda programada às ${now}`);
-        startCountdown();
-    }
-});
+  function clearHistory() {
+    historyList.innerHTML = "";
+  }
 
-resetButton.addEventListener("click", resetTimer);
+  function printHistory() {
+    let content = "Histórico de Ronda:\n\n";
+    document.querySelectorAll("#historyList li").forEach(item => {
+      content += item.textContent + "\n";
+    });
 
-clearHistoryButton.addEventListener("click", () => {
-    if (confirm("Deseja realmente limpar todo o histórico de rondas?")) {
-        localStorage.removeItem("rondas");
-        historyList.innerHTML = "";
-    }
+    const win = window.open("", "_blank");
+    win.document.write("<pre>" + content + "</pre>");
+    win.print();
+  }
+
+  startBtn.addEventListener("click", startTimer);
+  pauseBtn.addEventListener("click", pauseTimer);
+  resetBtn.addEventListener("click", resetTimer);
+  setTimerBtn.addEventListener("click", setTimer);
+  confirmRondaBtn.addEventListener("click", confirmRonda);
+  clearHistoryBtn.addEventListener("click", clearHistory);
+  printHistoryBtn.addEventListener("click", printHistory);
+
+  updateDisplay();
 });
