@@ -1,107 +1,153 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const timerDisplay = document.getElementById("timer");
-    const timeInput = document.getElementById("timeInput");
-    const startButton = document.getElementById("startButton");
-    const resetButton = document.getElementById("resetButton");
-    const historyList = document.getElementById("history");
-    const clearHistoryButton = document.getElementById("clearHistoryButton");
-    const alertSound = document.getElementById("alertSound");
+  const descricaoInput = document.getElementById("descricaoRonda");
+  const tempoInput = document.getElementById("tempoRonda");
+  const btnProgramar = document.getElementById("btnProgramar");
+  const btnZerar = document.getElementById("btnZerar");
+  const btnSalvar = document.getElementById("btnSalvar");
+  const btnLimparHistorico = document.getElementById("btnLimparHistorico");
+  const cronometroDisplay = document.getElementById("cronometro");
+  const finalizacao = document.getElementById("finalizacao");
+  const observacoesInput = document.getElementById("observacoes");
+  const historicoList = document.getElementById("historico");
 
-    let countdownInterval;
-    let countupInterval;
-    let remainingTime = 0;
-    let initialTime = 0;
-    let isCountingUp = false;
+  const alertaSom = new Audio("alerta1.mp3");
 
-    function formatTime(seconds) {
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  let countdownInterval, countupInterval;
+  let tempoRestante, tempoProgramado;
+  let contandoRegressivo = false;
+  let contandoProgressivo = false;
+  let segundosDecorridos = 0;
+
+  // Atualiza exibição do tempo
+  function atualizarDisplay(segundos) {
+    const min = String(Math.floor(segundos / 60)).padStart(2, "0");
+    const sec = String(segundos % 60).padStart(2, "0");
+    cronometroDisplay.textContent = `${min}:${sec}`;
+  }
+
+  // Reproduz 3 alertas sonoros
+  function tocarTresBipes() {
+    let contador = 0;
+    function tocar() {
+      if (contador < 3) {
+        alertaSom.currentTime = 0;
+        alertaSom.play();
+        contador++;
+        setTimeout(tocar, 1000); // intervalo de 1s entre bipes
+      }
+    }
+    tocar();
+  }
+
+  // Inicia contagem regressiva
+  function iniciarRegressiva() {
+    const descricao = descricaoInput.value.trim();
+    tempoProgramado = Math.min(Math.max(parseInt(tempoInput.value) || 1, 1), 60) * 60;
+    tempoRestante = tempoProgramado;
+
+    if (!descricao) {
+      alert("Informe uma descrição para a ronda!");
+      return;
     }
 
-    function startCountdown() {
+    contandoRegressivo = true;
+    atualizarDisplay(tempoRestante);
+
+    countdownInterval = setInterval(() => {
+      tempoRestante--;
+      atualizarDisplay(tempoRestante);
+
+      // Aviso nos 10% finais
+      if (tempoRestante === Math.floor(tempoProgramado * 0.1)) {
+        tocarTresBipes();
+      }
+
+      if (tempoRestante <= 0) {
         clearInterval(countdownInterval);
-        clearInterval(countupInterval);
+        contandoRegressivo = false;
+        iniciarProgressiva(descricao);
+      }
+    }, 1000);
+  }
 
-        const minutes = parseInt(timeInput.value);
-        if (isNaN(minutes) || minutes <= 0) {
-            alert("Informe um tempo válido em minutos.");
-            return;
-        }
+  // Inicia contagem progressiva
+  function iniciarProgressiva(descricao) {
+    contandoProgressivo = true;
+    segundosDecorridos = 0;
+    finalizacao.classList.remove("d-none");
 
-        remainingTime = minutes * 60;
-        initialTime = remainingTime;
-        isCountingUp = false;
+    countupInterval = setInterval(() => {
+      segundosDecorridos++;
+      atualizarDisplay(segundosDecorridos);
+    }, 1000);
+  }
 
-        timerDisplay.textContent = formatTime(remainingTime);
+  // Zerar cronômetro
+  function zerarCronometro() {
+    clearInterval(countdownInterval);
+    clearInterval(countupInterval);
+    contandoRegressivo = false;
+    contandoProgressivo = false;
+    segundosDecorridos = 0;
+    finalizacao.classList.add("d-none");
+    atualizarDisplay(0);
+  }
 
-        countdownInterval = setInterval(() => {
-            remainingTime--;
+  // Salvar ronda no histórico
+  function salvarRonda() {
+    const descricao = descricaoInput.value.trim();
+    const observacoes = observacoesInput.value.trim();
+    const hora = new Date().toLocaleTimeString();
 
-            timerDisplay.textContent = formatTime(remainingTime);
-
-            // 🔔 Alerta sonoro quando chegar nos 10%
-            if (remainingTime === Math.floor(initialTime * 0.1)) {
-                for (let i = 0; i < 3; i++) {
-                    setTimeout(() => {
-                        alertSound.currentTime = 0;
-                        alertSound.play();
-                    }, i * 1000);
-                }
-            }
-
-            if (remainingTime <= 0) {
-                clearInterval(countdownInterval);
-                startCountup();
-            }
-        }, 1000);
+    if (!descricao) {
+      alert("Descrição da ronda é obrigatória!");
+      return;
     }
 
-    function startCountup() {
-        isCountingUp = true;
-        let elapsedTime = 0;
-        countupInterval = setInterval(() => {
-            elapsedTime++;
-            timerDisplay.textContent = formatTime(elapsedTime);
-        }, 1000);
+    const item = document.createElement("li");
+    item.className = "list-group-item";
+    item.textContent = `🕒 ${hora} - ${descricao} | Tempo: ${segundosDecorridos}s | Obs: ${observacoes}`;
+    historicoList.appendChild(item);
 
-        saveToHistory("Ronda iniciada às " + new Date().toLocaleTimeString());
+    salvarHistoricoLocal();
+    zerarCronometro();
+    descricaoInput.value = "";
+    observacoesInput.value = "";
+  }
+
+  // Salvar histórico no localStorage
+  function salvarHistoricoLocal() {
+    const itens = [];
+    historicoList.querySelectorAll("li").forEach(li => itens.push(li.textContent));
+    localStorage.setItem("historicoRondas", JSON.stringify(itens));
+  }
+
+  // Carregar histórico salvo
+  function carregarHistorico() {
+    const itens = JSON.parse(localStorage.getItem("historicoRondas")) || [];
+    itens.forEach(texto => {
+      const li = document.createElement("li");
+      li.className = "list-group-item";
+      li.textContent = texto;
+      historicoList.appendChild(li);
+    });
+  }
+
+  // Limpar histórico
+  function limparHistorico() {
+    if (confirm("Deseja realmente limpar todo o histórico de rondas?")) {
+      localStorage.removeItem("historicoRondas");
+      historicoList.innerHTML = "";
     }
+  }
 
-    function resetTimer() {
-        clearInterval(countdownInterval);
-        clearInterval(countupInterval);
-        isCountingUp = false;
-        timerDisplay.textContent = "00:00";
-    }
+  // Eventos
+  btnProgramar.addEventListener("click", iniciarRegressiva);
+  btnZerar.addEventListener("click", zerarCronometro);
+  btnSalvar.addEventListener("click", salvarRonda);
+  btnLimparHistorico.addEventListener("click", limparHistorico);
 
-    function saveToHistory(entry) {
-        let history = JSON.parse(localStorage.getItem("rondaHistory")) || [];
-        history.push(entry);
-        localStorage.setItem("rondaHistory", JSON.stringify(history));
-        renderHistory();
-    }
-
-    function renderHistory() {
-        historyList.innerHTML = "";
-        let history = JSON.parse(localStorage.getItem("rondaHistory")) || [];
-        history.forEach(item => {
-            const li = document.createElement("li");
-            li.textContent = item;
-            historyList.appendChild(li);
-        });
-    }
-
-    function clearHistory() {
-        if (confirm("Deseja realmente apagar todo o histórico de rondas?")) {
-            localStorage.removeItem("rondaHistory");
-            renderHistory();
-        }
-    }
-
-    startButton.addEventListener("click", startCountdown);
-    resetButton.addEventListener("click", resetTimer);
-    clearHistoryButton.addEventListener("click", clearHistory);
-
-    renderHistory();
+  // Inicialização
+  atualizarDisplay(0);
+  carregarHistorico();
 });
