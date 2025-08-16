@@ -1,6 +1,7 @@
 const btnProgramar = document.getElementById("btnProgramar");
 const btnZerar = document.getElementById("btnZerar");
 const btnSalvar = document.getElementById("btnSalvar");
+const btnLimparHistorico = document.getElementById("btnLimparHistorico");
 const cronometro = document.getElementById("cronometro");
 const finalizacao = document.getElementById("finalizacao");
 const historico = document.getElementById("historico");
@@ -86,6 +87,15 @@ btnSalvar.addEventListener("click", () => {
   carregarHistorico();
   alert("Ronda salva com sucesso!");
   finalizacao.classList.add("d-none");
+});
+
+// Limpar histórico
+btnLimparHistorico.addEventListener("click", () => {
+  if (confirm("⚠️ Deseja realmente apagar todo o histórico de rondas?")) {
+    localStorage.removeItem("rondas");
+    carregarHistorico();
+    alert("Histórico de rondas apagado!");
+  }
 });
 
 // Carregar histórico
