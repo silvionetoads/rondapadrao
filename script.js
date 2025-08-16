@@ -1,112 +1,107 @@
-const btnProgramar = document.getElementById("btnProgramar");
-const btnZerar = document.getElementById("btnZerar");
-const btnSalvar = document.getElementById("btnSalvar");
-const btnLimparHistorico = document.getElementById("btnLimparHistorico");
-const cronometro = document.getElementById("cronometro");
-const finalizacao = document.getElementById("finalizacao");
-const historico = document.getElementById("historico");
+document.addEventListener("DOMContentLoaded", () => {
+    const timerDisplay = document.getElementById("timer");
+    const timeInput = document.getElementById("timeInput");
+    const startButton = document.getElementById("startButton");
+    const resetButton = document.getElementById("resetButton");
+    const historyList = document.getElementById("history");
+    const clearHistoryButton = document.getElementById("clearHistoryButton");
+    const alertSound = document.getElementById("alertSound");
 
-let tempoRestante;
-let intervalo;
-let contando = false;
-let tempoTotal = 0;
+    let countdownInterval;
+    let countupInterval;
+    let remainingTime = 0;
+    let initialTime = 0;
+    let isCountingUp = false;
 
-// Formata o tempo para MM:SS
-function formatarTempo(segundos) {
-  const m = String(Math.floor(segundos / 60)).padStart(2, "0");
-  const s = String(segundos % 60).padStart(2, "0");
-  return `${m}:${s}`;
-}
-
-// Programar Ronda (inicia regressivo)
-btnProgramar.addEventListener("click", () => {
-  const minutos = parseInt(document.getElementById("tempoRonda").value);
-  const descricao = document.getElementById("descricaoRonda").value.trim();
-
-  if (!descricao) {
-    alert("Por favor, insira uma descrição da ronda!");
-    return;
-  }
-
-  tempoRestante = minutos * 60;
-  tempoTotal = tempoRestante;
-  contando = "regressivo";
-
-  clearInterval(intervalo);
-  intervalo = setInterval(() => {
-    if (tempoRestante > 0) {
-      tempoRestante--;
-      cronometro.textContent = formatarTempo(tempoRestante);
-
-      // Alerta sonoro quando atingir 10% do tempo
-      if (tempoRestante === Math.floor(tempoTotal * 0.1)) {
-        let beep = new Audio("https://www.soundjay.com/button/beep-07.wav");
-        // tocar 3 bipes
-        beep.play();
-        setTimeout(() => beep.play(), 700);
-        setTimeout(() => beep.play(), 1400);
-      }
-    } else {
-      clearInterval(intervalo);
-      iniciarProgressivo();
+    function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
     }
-  }, 1000);
+
+    function startCountdown() {
+        clearInterval(countdownInterval);
+        clearInterval(countupInterval);
+
+        const minutes = parseInt(timeInput.value);
+        if (isNaN(minutes) || minutes <= 0) {
+            alert("Informe um tempo válido em minutos.");
+            return;
+        }
+
+        remainingTime = minutes * 60;
+        initialTime = remainingTime;
+        isCountingUp = false;
+
+        timerDisplay.textContent = formatTime(remainingTime);
+
+        countdownInterval = setInterval(() => {
+            remainingTime--;
+
+            timerDisplay.textContent = formatTime(remainingTime);
+
+            // 🔔 Alerta sonoro quando chegar nos 10%
+            if (remainingTime === Math.floor(initialTime * 0.1)) {
+                for (let i = 0; i < 3; i++) {
+                    setTimeout(() => {
+                        alertSound.currentTime = 0;
+                        alertSound.play();
+                    }, i * 1000);
+                }
+            }
+
+            if (remainingTime <= 0) {
+                clearInterval(countdownInterval);
+                startCountup();
+            }
+        }, 1000);
+    }
+
+    function startCountup() {
+        isCountingUp = true;
+        let elapsedTime = 0;
+        countupInterval = setInterval(() => {
+            elapsedTime++;
+            timerDisplay.textContent = formatTime(elapsedTime);
+        }, 1000);
+
+        saveToHistory("Ronda iniciada às " + new Date().toLocaleTimeString());
+    }
+
+    function resetTimer() {
+        clearInterval(countdownInterval);
+        clearInterval(countupInterval);
+        isCountingUp = false;
+        timerDisplay.textContent = "00:00";
+    }
+
+    function saveToHistory(entry) {
+        let history = JSON.parse(localStorage.getItem("rondaHistory")) || [];
+        history.push(entry);
+        localStorage.setItem("rondaHistory", JSON.stringify(history));
+        renderHistory();
+    }
+
+    function renderHistory() {
+        historyList.innerHTML = "";
+        let history = JSON.parse(localStorage.getItem("rondaHistory")) || [];
+        history.forEach(item => {
+            const li = document.createElement("li");
+            li.textContent = item;
+            historyList.appendChild(li);
+        });
+    }
+
+    function clearHistory() {
+        if (confirm("Deseja realmente apagar todo o histórico de rondas?")) {
+            localStorage.removeItem("rondaHistory");
+            renderHistory();
+        }
+    }
+
+    startButton.addEventListener("click", startCountdown);
+    resetButton.addEventListener("click", resetTimer);
+    clearHistoryButton.addEventListener("click", clearHistory);
+
+    renderHistory();
 });
-
-// Inicia cronômetro progressivo
-function iniciarProgressivo() {
-  contando = "progressivo";
-  let tempo = 0;
-  intervalo = setInterval(() => {
-    tempo++;
-    cronometro.textContent = formatarTempo(tempo);
-  }, 1000);
-  finalizacao.classList.remove("d-none");
-}
-
-// Zerar cronômetro (reset total)
-btnZerar.addEventListener("click", () => {
-  clearInterval(intervalo);
-  cronometro.textContent = "00:00";
-  finalizacao.classList.add("d-none");
-  contando = false;
-});
-
-// Salvar Ronda no histórico
-btnSalvar.addEventListener("click", () => {
-  const descricao = document.getElementById("descricaoRonda").value;
-  const obs = document.getElementById("observacoes").value;
-  const data = new Date().toLocaleString();
-
-  const registro = `${data} - ${descricao} | Observações: ${obs}`;
-
-  let rondas = JSON.parse(localStorage.getItem("rondas")) || [];
-  rondas.push(registro);
-  localStorage.setItem("rondas", JSON.stringify(rondas));
-
-  carregarHistorico();
-  alert("Ronda salva com sucesso!");
-  finalizacao.classList.add("d-none");
-});
-
-// Limpar histórico
-btnLimparHistorico.addEventListener("click", () => {
-  if (confirm("⚠️ Deseja realmente apagar todo o histórico de rondas?")) {
-    localStorage.removeItem("rondas");
-    carregarHistorico();
-    alert("Histórico de rondas apagado!");
-  }
-});
-
-// Carregar histórico
-function carregarHistorico() {
-  historico.innerHTML = "";
-  let rondas = JSON.parse(localStorage.getItem("rondas")) || [];
-  rondas.forEach(r => {
-    const li = document.createElement("li");
-    li.className = "list-group-item";
-    li.textContent = r;
-    historico.appendChild(li);
-  });
-}
-carregarHistorico();
