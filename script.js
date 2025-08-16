@@ -1,153 +1,102 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const descricaoInput = document.getElementById("descricaoRonda");
-  const tempoInput = document.getElementById("tempoRonda");
-  const btnProgramar = document.getElementById("btnProgramar");
-  const btnZerar = document.getElementById("btnZerar");
-  const btnSalvar = document.getElementById("btnSalvar");
-  const btnLimparHistorico = document.getElementById("btnLimparHistorico");
-  const cronometroDisplay = document.getElementById("cronometro");
-  const finalizacao = document.getElementById("finalizacao");
-  const observacoesInput = document.getElementById("observacoes");
-  const historicoList = document.getElementById("historico");
+let timerElement = document.getElementById("timer");
+let statusElement = document.getElementById("status");
+let startButton = document.getElementById("startButton");
+let resetButton = document.getElementById("resetButton");
+let clearHistoryButton = document.getElementById("clearHistory");
+let historyList = document.getElementById("historyList");
+let alertSound = document.getElementById("alertSound");
 
-  const alertaSom = new Audio("alerta1.mp3");
+let countdown;
+let stopwatch;
+let timeDeclared = 60; // valor padrão de ronda (60s)
+let remainingTime;
+let elapsedTime = 0;
+let isCountingDown = false;
+let isCountingUp = false;
 
-  let countdownInterval, countupInterval;
-  let tempoRestante, tempoProgramado;
-  let contandoRegressivo = false;
-  let contandoProgressivo = false;
-  let segundosDecorridos = 0;
+// Carregar histórico salvo
+window.onload = () => {
+    let savedHistory = JSON.parse(localStorage.getItem("rondas")) || [];
+    savedHistory.forEach(item => addToHistory(item));
+};
 
-  // Atualiza exibição do tempo
-  function atualizarDisplay(segundos) {
-    const min = String(Math.floor(segundos / 60)).padStart(2, "0");
-    const sec = String(segundos % 60).padStart(2, "0");
-    cronometroDisplay.textContent = `${min}:${sec}`;
-  }
+function updateTimerDisplay(time) {
+    let minutes = Math.floor(time / 60);
+    let seconds = time % 60;
+    timerElement.textContent = 
+        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2,'0')}`;
+}
 
-  // Reproduz 3 alertas sonoros
-  function tocarTresBipes() {
-    let contador = 0;
-    function tocar() {
-      if (contador < 3) {
-        alertaSom.currentTime = 0;
-        alertaSom.play();
-        contador++;
-        setTimeout(tocar, 1000); // intervalo de 1s entre bipes
-      }
-    }
-    tocar();
-  }
+function startCountdown() {
+    isCountingDown = true;
+    remainingTime = timeDeclared;
+    updateTimerDisplay(remainingTime);
+    statusElement.textContent = "⏳ Contagem regressiva...";
+    clearInterval(stopwatch);
 
-  // Inicia contagem regressiva
-  function iniciarRegressiva() {
-    const descricao = descricaoInput.value.trim();
-    tempoProgramado = Math.min(Math.max(parseInt(tempoInput.value) || 1, 1), 60) * 60;
-    tempoRestante = tempoProgramado;
+    countdown = setInterval(() => {
+        remainingTime--;
+        updateTimerDisplay(remainingTime);
 
-    if (!descricao) {
-      alert("Informe uma descrição para a ronda!");
-      return;
-    }
+        if (remainingTime <= Math.floor(timeDeclared * 0.1)) {
+            alertSound.play(); // alerta sonoro
+        }
 
-    contandoRegressivo = true;
-    atualizarDisplay(tempoRestante);
-
-    countdownInterval = setInterval(() => {
-      tempoRestante--;
-      atualizarDisplay(tempoRestante);
-
-      // Aviso nos 10% finais
-      if (tempoRestante === Math.floor(tempoProgramado * 0.1)) {
-        tocarTresBipes();
-      }
-
-      if (tempoRestante <= 0) {
-        clearInterval(countdownInterval);
-        contandoRegressivo = false;
-        iniciarProgressiva(descricao);
-      }
+        if (remainingTime <= 0) {
+            clearInterval(countdown);
+            startStopwatch();
+        }
     }, 1000);
-  }
+}
 
-  // Inicia contagem progressiva
-  function iniciarProgressiva(descricao) {
-    contandoProgressivo = true;
-    segundosDecorridos = 0;
-    finalizacao.classList.remove("d-none");
+function startStopwatch() {
+    isCountingDown = false;
+    isCountingUp = true;
+    elapsedTime = 0;
+    statusElement.textContent = "🔵 Ronda em andamento...";
 
-    countupInterval = setInterval(() => {
-      segundosDecorridos++;
-      atualizarDisplay(segundosDecorridos);
+    stopwatch = setInterval(() => {
+        elapsedTime++;
+        updateTimerDisplay(elapsedTime);
     }, 1000);
-  }
+}
 
-  // Zerar cronômetro
-  function zerarCronometro() {
-    clearInterval(countdownInterval);
-    clearInterval(countupInterval);
-    contandoRegressivo = false;
-    contandoProgressivo = false;
-    segundosDecorridos = 0;
-    finalizacao.classList.add("d-none");
-    atualizarDisplay(0);
-  }
+function resetTimer() {
+    clearInterval(countdown);
+    clearInterval(stopwatch);
+    isCountingDown = false;
+    isCountingUp = false;
+    elapsedTime = 0;
+    updateTimerDisplay(0);
+    statusElement.textContent = "⚪ Cronômetro zerado.";
+}
 
-  // Salvar ronda no histórico
-  function salvarRonda() {
-    const descricao = descricaoInput.value.trim();
-    const observacoes = observacoesInput.value.trim();
-    const hora = new Date().toLocaleTimeString();
+function addToHistory(entry) {
+    let li = document.createElement("li");
+    li.textContent = entry;
+    historyList.appendChild(li);
+}
 
-    if (!descricao) {
-      alert("Descrição da ronda é obrigatória!");
-      return;
+function saveHistory(entry) {
+    let history = JSON.parse(localStorage.getItem("rondas")) || [];
+    history.push(entry);
+    localStorage.setItem("rondas", JSON.stringify(history));
+}
+
+startButton.addEventListener("click", () => {
+    if (!isCountingDown && !isCountingUp) {
+        let now = new Date().toLocaleTimeString();
+        saveHistory(`Ronda programada às ${now}`);
+        addToHistory(`Ronda programada às ${now}`);
+        startCountdown();
     }
+});
 
-    const item = document.createElement("li");
-    item.className = "list-group-item";
-    item.textContent = `🕒 ${hora} - ${descricao} | Tempo: ${segundosDecorridos}s | Obs: ${observacoes}`;
-    historicoList.appendChild(item);
+resetButton.addEventListener("click", resetTimer);
 
-    salvarHistoricoLocal();
-    zerarCronometro();
-    descricaoInput.value = "";
-    observacoesInput.value = "";
-  }
-
-  // Salvar histórico no localStorage
-  function salvarHistoricoLocal() {
-    const itens = [];
-    historicoList.querySelectorAll("li").forEach(li => itens.push(li.textContent));
-    localStorage.setItem("historicoRondas", JSON.stringify(itens));
-  }
-
-  // Carregar histórico salvo
-  function carregarHistorico() {
-    const itens = JSON.parse(localStorage.getItem("historicoRondas")) || [];
-    itens.forEach(texto => {
-      const li = document.createElement("li");
-      li.className = "list-group-item";
-      li.textContent = texto;
-      historicoList.appendChild(li);
-    });
-  }
-
-  // Limpar histórico
-  function limparHistorico() {
+clearHistoryButton.addEventListener("click", () => {
     if (confirm("Deseja realmente limpar todo o histórico de rondas?")) {
-      localStorage.removeItem("historicoRondas");
-      historicoList.innerHTML = "";
+        localStorage.removeItem("rondas");
+        historyList.innerHTML = "";
     }
-  }
-
-  // Eventos
-  btnProgramar.addEventListener("click", iniciarRegressiva);
-  btnZerar.addEventListener("click", zerarCronometro);
-  btnSalvar.addEventListener("click", salvarRonda);
-  btnLimparHistorico.addEventListener("click", limparHistorico);
-
-  // Inicialização
-  atualizarDisplay(0);
-  carregarHistorico();
 });
