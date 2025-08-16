@@ -1,40 +1,56 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Rondas</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Ronda - V.07</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="app-container">
-        <header>
-            <h1>🛡️ Painel de Rondas</h1>
-        </header>
+  <div class="container">
 
-        <main>
-            <div class="timer-container">
-                <h2 id="timer">00:00</h2>
-                <p id="status">Aguardando programação...</p>
-            </div>
+    <h1>Sistema de Ronda - V.07</h1>
+    <p class="dev-info">Desenvolvedor: Silvio Marques de Santana Neto - Analista e Desenvolvedor de Sistemas<br>
+      Data: 15/08/2025</p>
 
-            <div class="buttons">
-                <button id="startButton">▶ Programar Ronda</button>
-                <button id="resetButton">⏹️ Zerar Cronômetro</button>
-            </div>
-
-            <div class="history">
-                <h3>📋 Histórico de Rondas</h3>
-                <ul id="historyList"></ul>
-            </div>
-        </main>
-
-        <footer>
-            <button id="clearHistory" class="danger">🗑️ Limpar Histórico</button>
-        </footer>
+    <!-- Ajuste do Cronômetro -->
+    <div class="timer-config">
+      <label for="timeInput">Definir tempo da ronda (minutos):</label>
+      <input type="number" id="timeInput" min="1" value="5">
+      <button id="setTimerBtn">Definir</button>
     </div>
 
-    <audio id="alertSound" src="alerta1.mp3" preload="auto"></audio>
-    <script src="script.js"></script>
+    <!-- Exibição do Cronômetro -->
+    <div id="timerDisplay">00:00</div>
+    <div class="buttons">
+      <button id="startBtn">Iniciar</button>
+      <button id="pauseBtn">Pausar</button>
+      <button id="resetBtn">Zerar</button>
+    </div>
+
+    <!-- Mensagem de alerta quando o cronômetro zerar -->
+    <div id="alertMessage" class="hidden">
+      <h2>⚠️ Iniciar Ronda Agora!</h2>
+      <button id="confirmRondaBtn">Confirmar Início</button>
+    </div>
+
+    <!-- Histórico -->
+    <div id="history">
+      <h2>Histórico de Rondaa</h2>
+      <ul id="historyList"></ul>
+    </div>
+
+    <!-- Ações adicionais -->
+    <div class="extra-actions">
+      <button id="printHistoryBtn">🖨️ Imprimir/Compartilhar Histórico</button>
+      <button id="clearHistoryBtn" class="small-btn">Limpar Histórico</button>
+    </div>
+
+  </div>
+
+  <!-- Áudio de Alerta -->
+  <audio id="alertSound" src="alerta1.mp3" preload="auto"></audio>
+
+  <script src="script.js"></script>
 </body>
 </html>
