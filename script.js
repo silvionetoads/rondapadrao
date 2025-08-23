@@ -1,220 +1,104 @@
-// Estados e elementos
-let countdownInterval = null;
-let rondaInterval = null;
+document.addEventListener("DOMContentLoaded", () => {
+  const postoInput = document.getElementById("posto");
+  const tempoPreparacaoInput = document.getElementById("tempoPreparacao");
+  const iniciarBtn = document.getElementById("iniciarRonda");
+  const statusDiv = document.getElementById("statusRonda");
+  const cronometroDiv = document.getElementById("cronometro");
+  const finalizarBtn = document.getElementById("finalizarRonda");
+  const observacaoContainer = document.getElementById("observacaoContainer");
+  const observacaoInput = document.getElementById("observacao");
+  const salvarBtn = document.getElementById("salvarRonda");
+  const relatorio = document.getElementById("relatorio");
 
-let tempoProgramadoSeg = 0;   // tempo ajustado (segundos)
-let restanteSeg = 0;          // restante da regressiva
-let rondaSeg = 0;             // cronômetro progressivo da ronda
-let estado = "inicial";       // inicial | ajustado | regressivo | zerou | ronda
+  let tempoPreparacao;
+  let tempoRonda = 0;
+  let intervalo;
+  let emPreparacao = false;
+  let emRonda = false;
 
-// Elementos da UI
-const inputPosto = document.getElementById("posto");
-const inputTempo = document.getElementById("tempo");
-const inputObs   = document.getElementById("observacao");
-
-const btnAjustar   = document.getElementById("btnAjustar");
-const btnIniciar   = document.getElementById("btnIniciar");
-const btnPausar    = document.getElementById("btnPausar");
-const btnZerar     = document.getElementById("btnZerar");
-const btnRelatorio = document.getElementById("btnRelatorio");
-
-const display  = document.getElementById("display");
-const alerta   = document.getElementById("alerta");
-const btnConfirmarRonda = document.getElementById("btnConfirmarRonda");
-
-const alertSound = document.getElementById("alertSound");
-
-const listaRelatorios = document.getElementById("listaRelatorios");
-
-const STORAGE_KEY = "relatoriosRondaV07";
-
-// Util
-function formatMMSS(totalSeg){
-  const m = String(Math.floor(totalSeg / 60)).padStart(2,"0");
-  const s = String(totalSeg % 60).padStart(2,"0");
-  return `${m}:${s}`;
-}
-
-function setDisplay(seg){ display.textContent = formatMMSS(seg); }
-
-// Controle de botões conforme estado
-function applyState(newState){
-  estado = newState;
-
-  if(estado === "inicial"){
-    btnAjustar.disabled = false;
-    btnIniciar.disabled = true;
-    btnPausar.disabled  = true;
-    btnZerar.disabled   = true;
-    btnRelatorio.disabled = true;
+  function formatarTempo(segundos) {
+    const min = Math.floor(segundos / 60);
+    const sec = segundos % 60;
+    return `${min.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
   }
 
-  if(estado === "ajustado"){
-    btnAjustar.disabled = false;
-    btnIniciar.disabled = false;
-    btnPausar.disabled  = true;
-    btnZerar.disabled   = true;
-    btnRelatorio.disabled = true;
-  }
+  iniciarBtn.addEventListener("click", () => {
+    const posto = postoInput.value.trim();
+    const minutos = parseInt(tempoPreparacaoInput.value);
 
-  if(estado === "regressivo"){
-    btnAjustar.disabled = true;
-    btnIniciar.disabled = true;
-    // Especificação: manter pausar/zerar/relatório desabilitados durante regressivo
-    btnPausar.disabled  = true;
-    btnZerar.disabled   = true;
-    btnRelatorio.disabled = true;
-  }
-
-  if(estado === "zerou"){
-    // Tempo zerou: habilitar pausar/zerar/relatório
-    btnAjustar.disabled = true;
-    btnIniciar.disabled = true;
-    btnPausar.disabled  = false;
-    btnZerar.disabled   = false;
-    btnRelatorio.disabled = false;
-  }
-
-  if(estado === "ronda"){
-    // Em ronda (progressivo): pausar/zerar/relatório habilitados
-    btnAjustar.disabled = true;
-    btnIniciar.disabled = true;
-    btnPausar.disabled  = false;
-    btnZerar.disabled   = false;
-    btnRelatorio.disabled = false;
-  }
-}
-
-// Fluxo
-function ajustarCronometro(){
-  const min = parseInt(inputTempo.value, 10);
-  if(isNaN(min) || min < 1) return;
-
-  const san = Math.min(Math.max(min,1), 60); // clamp 1..60
-  tempoProgramadoSeg = san * 60;
-  restanteSeg = tempoProgramadoSeg;
-  clearInterval(countdownInterval);
-  clearInterval(rondaInterval);
-  setDisplay(restanteSeg);
-  alerta.classList.add("hidden");
-  applyState("ajustado");
-}
-
-function iniciarRegressivo(){
-  if(tempoProgramadoSeg <= 0) return;
-  restanteSeg = tempoProgramadoSeg;
-  setDisplay(restanteSeg);
-  applyState("regressivo");
-
-  clearInterval(countdownInterval);
-  countdownInterval = setInterval(() => {
-    restanteSeg--;
-    setDisplay(restanteSeg);
-
-    if(restanteSeg <= 0){
-      clearInterval(countdownInterval);
-      setDisplay(0);
-      // toca som e mostra alerta de início de ronda
-      try { alertSound.currentTime = 0; alertSound.play(); } catch(e){}
-      alerta.classList.remove("hidden");
-      applyState("zerou");
+    if (!posto) {
+      alert("Por favor, informe o nome do posto.");
+      return;
     }
-  }, 1000);
-}
 
-function confirmarRonda(){
-  alerta.classList.add("hidden");
-  rondaSeg = 0;
-  setDisplay(rondaSeg);
-  applyState("ronda");
+    if (isNaN(minutos) || minutos <= 0) {
+      alert("Por favor, informe o tempo de preparação válido.");
+      return;
+    }
 
-  clearInterval(rondaInterval);
-  rondaInterval = setInterval(() => {
-    rondaSeg++;
-    setDisplay(rondaSeg);
-  }, 1000);
+    tempoPreparacao = minutos * 60;
+    statusDiv.textContent = `Preparação iniciada no posto: ${posto}`;
+    emPreparacao = true;
 
-  // Muda texto do botão pausar para alternar Pausar/Retomar
-  btnPausar.textContent = "⏸️ Pausar";
-  btnPausar.dataset.paused = "false";
-}
+    iniciarBtn.disabled = true;
+    cronometroDiv.textContent = formatarTempo(tempoPreparacao);
 
-function pausarOuRetomar(){
-  if(estado !== "ronda") return;
+    intervalo = setInterval(() => {
+      if (emPreparacao) {
+        tempoPreparacao--;
+        cronometroDiv.textContent = formatarTempo(tempoPreparacao);
 
-  const paused = btnPausar.dataset.paused === "true";
-  if(!paused){
-    // Pausar
-    clearInterval(rondaInterval);
-    btnPausar.textContent = "▶ Retomar";
-    btnPausar.dataset.paused = "true";
-  } else {
-    // Retomar
-    clearInterval(rondaInterval);
-    rondaInterval = setInterval(() => {
-      rondaSeg++;
-      setDisplay(rondaSeg);
+        if (tempoPreparacao <= 0) {
+          clearInterval(intervalo);
+          iniciarRonda();
+        }
+      }
     }, 1000);
-    btnPausar.textContent = "⏸️ Pausar";
-    btnPausar.dataset.paused = "false";
-  }
-}
-
-function zerarTudo(){
-  clearInterval(countdownInterval);
-  clearInterval(rondaInterval);
-  tempoProgramadoSeg = 0;
-  restanteSeg = 0;
-  rondaSeg = 0;
-  setDisplay(0);
-  alerta.classList.add("hidden");
-  inputTempo.disabled = false;
-  applyState("inicial");
-}
-
-function gerarRelatorio(){
-  const posto = (inputPosto.value || "Sem nome").trim();
-  const obs   = (inputObs.value || "Sem observações").trim();
-  const minutosProgramados = Math.floor((tempoProgramadoSeg || 0)/60);
-
-  const rel = {
-    data: new Date().toLocaleString("pt-BR"),
-    posto,
-    tempoRondaMin: minutosProgramados,
-    observacao: obs
-  };
-
-  const lista = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-  lista.push(rel);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(lista));
-
-  renderRelatorios(lista);
-
-  // feedback visual 90s (sem toast moderno)
-  alert("Relatório salvo no navegador.");
-}
-
-function renderRelatorios(lista){
-  listaRelatorios.innerHTML = "";
-  lista.forEach((r, idx) => {
-    const li = document.createElement("li");
-    li.textContent = `[${r.data}] Posto: ${r.posto} | Tempo: ${r.tempoRondaMin} min | Obs: ${r.observacao}`;
-    listaRelatorios.appendChild(li);
   });
-}
 
-// Eventos
-btnAjustar.addEventListener("click", ajustarCronometro);
-btnIniciar.addEventListener("click", iniciarRegressivo);
-btnConfirmarRonda.addEventListener("click", confirmarRonda);
-btnPausar.addEventListener("click", pausarOuRetomar);
-btnZerar.addEventListener("click", zerarTudo);
-btnRelatorio.addEventListener("click", gerarRelatorio);
+  function iniciarRonda() {
+    statusDiv.textContent = "Ronda em andamento...";
+    emPreparacao = false;
+    emRonda = true;
+    tempoRonda = 0;
+    finalizarBtn.classList.remove("hidden");
 
-// Inicialização
-(function init(){
-  setDisplay(0);
-  applyState("inicial");
-  const lista = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-  renderRelatorios(lista);
-})();
+    intervalo = setInterval(() => {
+      if (emRonda) {
+        tempoRonda++;
+        cronometroDiv.textContent = `⏱️ ${formatarTempo(tempoRonda)}`;
+      }
+    }, 1000);
+  }
+
+  finalizarBtn.addEventListener("click", () => {
+    if (emRonda) {
+      clearInterval(intervalo);
+      emRonda = false;
+      statusDiv.textContent = "Ronda finalizada. Preencha a observação.";
+      finalizarBtn.classList.add("hidden");
+      observacaoContainer.classList.remove("hidden");
+    }
+  });
+
+  salvarBtn.addEventListener("click", () => {
+    const posto = postoInput.value.trim();
+    const observacao = observacaoInput.value.trim();
+
+    if (!observacao) {
+      alert("A observação da ronda é obrigatória.");
+      return;
+    }
+
+    const registro = document.createElement("li");
+    registro.textContent = `📍 Posto: ${posto} | ⏱️ Tempo de Ronda: ${formatarTempo(tempoRonda)} | Observação: ${observacao}`;
+
+    relatorio.appendChild(registro);
+
+    statusDiv.textContent = "Registro de ronda salvo com sucesso.";
+    observacaoInput.value = "";
+    observacaoContainer.classList.add("hidden");
+    iniciarBtn.disabled = false;
+    cronometroDiv.textContent = "";
+  });
+});
