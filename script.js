@@ -1,104 +1,164 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const postoInput = document.getElementById("posto");
-  const tempoPreparacaoInput = document.getElementById("tempoPreparacao");
-  const iniciarBtn = document.getElementById("iniciarRonda");
-  const statusDiv = document.getElementById("statusRonda");
-  const cronometroDiv = document.getElementById("cronometro");
-  const finalizarBtn = document.getElementById("finalizarRonda");
-  const observacaoContainer = document.getElementById("observacaoContainer");
-  const observacaoInput = document.getElementById("observacao");
-  const salvarBtn = document.getElementById("salvarRonda");
-  const relatorio = document.getElementById("relatorio");
+let contadorElement = document.getElementById("contador");
+let ajustarBtn = document.getElementById("ajustar");
+let iniciarBtn = document.getElementById("iniciar");
+let pausarBtn = document.getElementById("pausar");
+let zerarBtn = document.getElementById("zerar");
+let finalizarBtn = document.getElementById("finalizar");
+let gerarBtn = document.getElementById("gerar");
+let salvarBtn = document.getElementById("salvar");
+let imprimirBtn = document.getElementById("imprimir");
+let limparRelatorios = document.getElementById("limpar-relatorios");
 
-  let tempoPreparacao;
-  let tempoRonda = 0;
-  let intervalo;
-  let emPreparacao = false;
-  let emRonda = false;
+let observacaoContainer = document.getElementById("observacao-container");
+let relatoriosContainer = document.getElementById("relatorios-container");
+let relatoriosList = document.getElementById("relatorios");
 
-  function formatarTempo(segundos) {
-    const min = Math.floor(segundos / 60);
-    const sec = segundos % 60;
-    return `${min.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
-  }
+let postoInput = document.getElementById("posto");
+let tempoInput = document.getElementById("tempo");
+let observacaoInput = document.getElementById("observacao");
 
-  iniciarBtn.addEventListener("click", () => {
-    const posto = postoInput.value.trim();
-    const minutos = parseInt(tempoPreparacaoInput.value);
+let tempo = 0;
+let intervalo;
+let emPreparacao = false;
+let emRonda = false;
+let segundosRonda = 0;
+let intervaloRonda;
 
-    if (!posto) {
-      alert("Por favor, informe o nome do posto.");
-      return;
+ajustarBtn.addEventListener("click", () => {
+    if (postoInput.value === "" || tempoInput.value <= 0) {
+        alert("Preencha o nome do posto e o tempo corretamente!");
+        return;
     }
+    tempo = tempoInput.value * 60;
+    atualizarDisplay(tempo);
+    iniciarBtn.disabled = false;
+});
 
-    if (isNaN(minutos) || minutos <= 0) {
-      alert("Por favor, informe o tempo de preparação válido.");
-      return;
+iniciarBtn.addEventListener("click", () => {
+    if (tempo > 0 && !emPreparacao) {
+        emPreparacao = true;
+        iniciarContagemRegressiva();
     }
+});
 
-    tempoPreparacao = minutos * 60;
-    statusDiv.textContent = `Preparação iniciada no posto: ${posto}`;
-    emPreparacao = true;
+function iniciarContagemRegressiva() {
+    intervalo = setInterval(() => {
+        tempo--;
+        atualizarDisplay(tempo);
+
+        if (tempo <= 0) {
+            clearInterval(intervalo);
+            emPreparacao = false;
+            iniciarCronometroRonda();
+        }
+    }, 1000);
 
     iniciarBtn.disabled = true;
-    cronometroDiv.textContent = formatarTempo(tempoPreparacao);
+    pausarBtn.disabled = false;
+    zerarBtn.disabled = false;
+}
 
-    intervalo = setInterval(() => {
-      if (emPreparacao) {
-        tempoPreparacao--;
-        cronometroDiv.textContent = formatarTempo(tempoPreparacao);
-
-        if (tempoPreparacao <= 0) {
-          clearInterval(intervalo);
-          iniciarRonda();
-        }
-      }
-    }, 1000);
-  });
-
-  function iniciarRonda() {
-    statusDiv.textContent = "Ronda em andamento...";
-    emPreparacao = false;
+function iniciarCronometroRonda() {
+    segundosRonda = 0;
     emRonda = true;
-    tempoRonda = 0;
-    finalizarBtn.classList.remove("hidden");
+    finalizarBtn.disabled = false;
 
-    intervalo = setInterval(() => {
-      if (emRonda) {
-        tempoRonda++;
-        cronometroDiv.textContent = `⏱️ ${formatarTempo(tempoRonda)}`;
-      }
+    intervaloRonda = setInterval(() => {
+        segundosRonda++;
+        atualizarDisplay(segundosRonda);
     }, 1000);
-  }
+}
 
-  finalizarBtn.addEventListener("click", () => {
-    if (emRonda) {
-      clearInterval(intervalo);
-      emRonda = false;
-      statusDiv.textContent = "Ronda finalizada. Preencha a observação.";
-      finalizarBtn.classList.add("hidden");
-      observacaoContainer.classList.remove("hidden");
+function atualizarDisplay(segundos) {
+    let min = String(Math.floor(segundos / 60)).padStart(2, "0");
+    let sec = String(segundos % 60).padStart(2, "0");
+    contadorElement.textContent = `${min}:${sec}`;
+}
+
+pausarBtn.addEventListener("click", () => {
+    if (emPreparacao) {
+        clearInterval(intervalo);
+        emPreparacao = false;
+    } else if (emRonda) {
+        clearInterval(intervaloRonda);
+        emRonda = false;
     }
-  });
+});
 
-  salvarBtn.addEventListener("click", () => {
-    const posto = postoInput.value.trim();
-    const observacao = observacaoInput.value.trim();
+zerarBtn.addEventListener("click", () => {
+    clearInterval(intervalo);
+    clearInterval(intervaloRonda);
+    contadorElement.textContent = "00:00";
+    tempo = 0;
+    segundosRonda = 0;
+    emPreparacao = false;
+    emRonda = false;
+    iniciarBtn.disabled = true;
+    pausarBtn.disabled = true;
+    zerarBtn.disabled = true;
+    finalizarBtn.disabled = true;
+    gerarBtn.disabled = true;
+    observacaoContainer.classList.add("hidden");
+});
 
-    if (!observacao) {
-      alert("A observação da ronda é obrigatória.");
-      return;
+finalizarBtn.addEventListener("click", () => {
+    clearInterval(intervaloRonda);
+    emRonda = false;
+    observacaoContainer.classList.remove("hidden");
+});
+
+salvarBtn.addEventListener("click", () => {
+    if (observacaoInput.value.trim() === "") {
+        alert("A observação da ronda é obrigatória!");
+        return;
     }
 
-    const registro = document.createElement("li");
-    registro.textContent = `📍 Posto: ${posto} | ⏱️ Tempo de Ronda: ${formatarTempo(tempoRonda)} | Observação: ${observacao}`;
+    let posto = postoInput.value;
+    let tempoRonda = `${String(Math.floor(segundosRonda / 60)).padStart(2, "0")}:${String(segundosRonda % 60).padStart(2, "0")}`;
+    let observacao = observacaoInput.value;
 
-    relatorio.appendChild(registro);
+    let registro = `Posto: ${posto} | Tempo de Ronda: ${tempoRonda} | Observação: ${observacao}`;
 
-    statusDiv.textContent = "Registro de ronda salvo com sucesso.";
+    let li = document.createElement("li");
+    li.textContent = registro;
+    relatoriosList.appendChild(li);
+
+    relatoriosContainer.classList.remove("hidden");
+
+    // Salva na memória local
+    let registros = JSON.parse(localStorage.getItem("relatorios")) || [];
+    registros.push(registro);
+    localStorage.setItem("relatorios", JSON.stringify(registros));
+
     observacaoInput.value = "";
     observacaoContainer.classList.add("hidden");
-    iniciarBtn.disabled = false;
-    cronometroDiv.textContent = "";
-  });
+    gerarBtn.disabled = false;
+});
+
+gerarBtn.addEventListener("click", () => {
+    alert("Relatório consolidado pronto!");
+});
+
+imprimirBtn.addEventListener("click", () => {
+    window.print();
+});
+
+limparRelatorios.addEventListener("click", () => {
+    if (confirm("Deseja realmente limpar todos os relatórios?")) {
+        localStorage.removeItem("relatorios");
+        relatoriosList.innerHTML = "";
+    }
+});
+
+// Recarregar registros salvos
+window.addEventListener("load", () => {
+    let registros = JSON.parse(localStorage.getItem("relatorios")) || [];
+    if (registros.length > 0) {
+        relatoriosContainer.classList.remove("hidden");
+        registros.forEach(r => {
+            let li = document.createElement("li");
+            li.textContent = r;
+            relatoriosList.appendChild(li);
+        });
+    }
 });
