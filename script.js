@@ -1,101 +1,84 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const timerDisplay = document.getElementById("timerDisplay");
-  const startBtn = document.getElementById("startBtn");
-  const pauseBtn = document.getElementById("pauseBtn");
-  const resetBtn = document.getElementById("resetBtn");
-  const setTimerBtn = document.getElementById("setTimerBtn");
-  const timeInput = document.getElementById("timeInput");
-  const alertMessage = document.getElementById("alertMessage");
-  const confirmRondaBtn = document.getElementById("confirmRondaBtn");
-  const historyList = document.getElementById("historyList");
-  const clearHistoryBtn = document.getElementById("clearHistoryBtn");
-  const printHistoryBtn = document.getElementById("printHistoryBtn");
-  const alertSound = document.getElementById("alertSound");
+let timer;
+let tempoRestante;
+let emContagem = false;
 
-  let timer;
-  let timeRemaining = 0;
-  let isRunning = false;
+const cronometro = document.getElementById("cronometro");
+const play = document.getElementById("play");
+const zerar = document.getElementById("zerar");
+const finalizar = document.getElementById("finalizar");
+const relatorio = document.getElementById("relatorio");
+const alerta = document.getElementById("alerta");
+const confirmarRonda = document.getElementById("confirmarRonda");
+const somAlerta = document.getElementById("somAlerta");
+const listaHistorico = document.getElementById("listaHistorico");
+const imprimir = document.getElementById("imprimir");
+const limpar = document.getElementById("limpar");
 
-  function updateDisplay() {
-    let minutes = Math.floor(timeRemaining / 60);
-    let seconds = timeRemaining % 60;
-    timerDisplay.textContent = 
-      `${minutes.toString().padStart(2,"0")}:${seconds.toString().padStart(2,"0")}`;
-  }
+function formatarTempo(segundos) {
+    const min = String(Math.floor(segundos / 60)).padStart(2, "0");
+    const sec = String(segundos % 60).padStart(2, "0");
+    return `${min}:${sec}`;
+}
 
-  function startTimer() {
-    if (timeRemaining > 0 && !isRunning) {
-      isRunning = true;
-      timer = setInterval(() => {
-        timeRemaining--;
-        updateDisplay();
+play.addEventListener("click", () => {
+    const tempo = parseInt(document.getElementById("tempo").value) * 60;
+    if (isNaN(tempo) || tempo <= 0) return;
 
-        if (timeRemaining <= 0) {
-          clearInterval(timer);
-          isRunning = false;
-          triggerAlert();
+    tempoRestante = tempo;
+    emContagem = true;
+
+    play.disabled = true;
+    zerar.disabled = true;
+    relatorio.disabled = true;
+    finalizar.disabled = true;
+
+    timer = setInterval(() => {
+        tempoRestante--;
+        cronometro.textContent = formatarTempo(tempoRestante);
+
+        if (tempoRestante <= 0) {
+            clearInterval(timer);
+            somAlerta.play();
+            alerta.classList.remove("hidden");
         }
-      }, 1000);
-    }
-  }
+    }, 1000);
+});
 
-  function pauseTimer() {
+confirmarRonda.addEventListener("click", () => {
+    alerta.classList.add("hidden");
+    finalizar.disabled = false;
+});
+
+finalizar.addEventListener("click", () => {
+    emContagem = false;
+    play.disabled = false;
+    zerar.disabled = false;
+    relatorio.disabled = false;
+    finalizar.disabled = true;
+
+    const posto = document.getElementById("posto").value || "Sem Nome";
+    const obs = document.getElementById("observacao").value || "Sem Observação";
+    const data = new Date().toLocaleString();
+
+    const item = document.createElement("li");
+    item.textContent = `[${data}] Posto: ${posto} | Observação: ${obs}`;
+    listaHistorico.appendChild(item);
+});
+
+zerar.addEventListener("click", () => {
     clearInterval(timer);
-    isRunning = false;
-  }
+    cronometro.textContent = "00:00";
+    emContagem = false;
+    play.disabled = false;
+});
 
-  function resetTimer() {
-    pauseTimer();
-    timeRemaining = 0;
-    updateDisplay();
-  }
+imprimir.addEventListener("click", () => {
+    const conteudo = document.getElementById("historico").innerHTML;
+    const w = window.open("", "", "width=600,height=400");
+    w.document.write("<h1>Histórico de Rond as</h1>" + conteudo);
+    w.print();
+});
 
-  function setTimer() {
-    const minutes = parseInt(timeInput.value);
-    if (!isNaN(minutes) && minutes > 0) {
-      timeRemaining = minutes * 60;
-      updateDisplay();
-    }
-  }
-
-  function triggerAlert() {
-    alertMessage.classList.remove("hidden");
-    alertSound.play();
-  }
-
-  function confirmRonda() {
-    const now = new Date();
-    const timestamp = now.toLocaleString("pt-BR");
-    const li = document.createElement("li");
-    li.textContent = `Ronda iniciada em: ${timestamp}`;
-    historyList.appendChild(li);
-
-    alertMessage.classList.add("hidden");
-    setTimer();
-  }
-
-  function clearHistory() {
-    historyList.innerHTML = "";
-  }
-
-  function printHistory() {
-    let content = "Histórico de Ronda:\n\n";
-    document.querySelectorAll("#historyList li").forEach(item => {
-      content += item.textContent + "\n";
-    });
-
-    const win = window.open("", "_blank");
-    win.document.write("<pre>" + content + "</pre>");
-    win.print();
-  }
-
-  startBtn.addEventListener("click", startTimer);
-  pauseBtn.addEventListener("click", pauseTimer);
-  resetBtn.addEventListener("click", resetTimer);
-  setTimerBtn.addEventListener("click", setTimer);
-  confirmRondaBtn.addEventListener("click", confirmRonda);
-  clearHistoryBtn.addEventListener("click", clearHistory);
-  printHistoryBtn.addEventListener("click", printHistory);
-
-  updateDisplay();
+limpar.addEventListener("click", () => {
+    listaHistorico.innerHTML = "";
 });
