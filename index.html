@@ -1,60 +1,38 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sistema de Ronda - V.07 (Retrô)</title>
-  <link rel="stylesheet" href="style.css"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Ronda - Vigilantes</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="window">
-    <h1>🛡️ Sistema de Ronda - V.07</h1>
-    <p class="meta">
-      Desenvolvido por: <b>Silvio Marques de Santana Neto</b> — Analista e Desenvolvedor de Sistemas<br/>
-      Versão de Teste: <b>V.07</b> — Data: <b>15/08/2025</b>
-    </p>
+  <div class="container">
+    <h1>Sistema de Controle de Ronda</h1>
 
     <label for="posto">Nome do Posto:</label>
-    <input type="text" id="posto" placeholder="Ex: Portaria Principal" />
+    <input type="text" id="posto" placeholder="Digite o nome do posto">
 
-    <label for="tempo">Tempo da Ronda (minutos):</label>
-    <input type="number" id="tempo" min="1" max="60" value="5" />
+    <label for="tempoPreparacao">Preparação da Início da Ronda (min):</label>
+    <input type="number" id="tempoPreparacao" placeholder="Ex: 5">
 
-    <div class="btn-row">
-      <button id="btnAjustar">🕒 Ajustar Cronômetro</button>
-      <button id="btnIniciar" disabled>▶ Iniciar Regressivo</button>
+    <button id="iniciarRonda">Iniciar Preparação</button>
+
+    <div id="statusRonda" class="status"></div>
+    <div id="cronometro" class="cronometro"></div>
+
+    <button id="finalizarRonda" class="hidden">Finalizar a Ronda</button>
+
+    <div id="observacaoContainer" class="hidden">
+      <label for="observacao">Observação da Ronda (obrigatório):</label>
+      <textarea id="observacao" rows="4" placeholder="Descreva o que foi observado na ronda..."></textarea>
+      <button id="salvarRonda">Salvar registro de Ronda</button>
     </div>
 
-    <div id="display" class="timer">00:00</div>
-
-    <div class="btn-col">
-      <button id="btnPausar" disabled>⏸️ Pausar</button>
-      <button id="btnZerar" disabled>⏹️ Zerar</button>
-      <button id="btnRelatorio" disabled>📄 Gerar Relatório</button>
-    </div>
-
-    <label for="observacao">Observação da Ronda (ao finalizar):</label>
-    <textarea id="observacao" rows="3" placeholder="Registre ocorrências, anomalias, etc."></textarea>
-
-    <!-- Alerta ao zerar regressivo -->
-    <div id="alerta" class="alert hidden">
-      <h2>⏰ Tempo zerou!</h2>
-      <p>Iniciar a ronda agora?</p>
-      <button id="btnConfirmarRonda">✅ Iniciar Ronda Agora</button>
-    </div>
-
-    <!-- Área de relatórios -->
-    <div class="reports">
-      <h3>🗂️ Relatórios de Ronda</h3>
-      <ul id="listaRelatorios"></ul>
-    </div>
+    <h2>Relatório de Rondas</h2>
+    <ul id="relatorio"></ul>
   </div>
 
-  <!-- Som de alerta -->
-  <audio id="alertSound" src="alerta1.mp3" preload="auto"></audio>
-
   <script src="script.js"></script>
-  <!-- Google Analytics externo -->
-  <script src="analytics.js"></script>
 </body>
 </html>
