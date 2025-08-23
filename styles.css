@@ -1,160 +1,83 @@
-/* Estilo retrô anos 90 (Win95 vibes) + mobile-first acessível */
-:root{
-  --bg: #c0c0c0;
-  --window: #e0e0e0;
-  --border-dark: #808080;
-  --border-light: #ffffff;
-  --text: #000;
-  --accent: #003399;
-  --timer-bg: #000;
-  --timer-txt: #00ff00;
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f6f9;
+  margin: 0;
+  padding: 20px;
 }
 
-* { box-sizing: border-box; }
-
-body{
-  margin:0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: Arial, Helvetica, sans-serif;
-  display:flex;
-  justify-content:center;
-  align-items:flex-start;
-  padding:16px;
-  min-height:100vh;
+.container {
+  max-width: 500px;
+  margin: auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
-.window{
-  width:100%;
-  max-width:520px;
-  background:var(--window);
-  border:2px solid var(--border-dark);
-  box-shadow: inset -2px -2px var(--border-light), inset 2px 2px #404040;
-  padding:16px;
+h1, h2 {
+  text-align: center;
+  color: #2c3e50;
 }
 
-h1{
-  margin:0 0 10px 0;
-  padding:6px;
-  font-size:18px;
-  text-align:center;
-  color:#fff;
-  background: var(--accent);
-  border:2px solid #000;
+label {
+  display: block;
+  margin-top: 15px;
+  font-weight: bold;
 }
 
-.meta{
-  font-size:12px;
-  text-align:center;
-  margin:0 0 14px 0;
+input, textarea {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
 }
 
-label{
-  display:block;
-  font-weight:bold;
-  margin-top:10px;
+button {
+  margin-top: 15px;
+  width: 100%;
+  padding: 12px;
+  background-color: #2980b9;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
 }
 
-input, textarea{
-  width:100%;
-  padding:10px;
-  margin-top:6px;
-  border:2px inset var(--border-light);
-  background:#fff;
-  font-size:16px;
+button:hover {
+  background-color: #1f6391;
 }
 
-.timer{
-  margin:14px 0;
-  padding:12px;
-  text-align:center;
-  font-family: "Courier New", monospace;
-  font-size:44px;
-  font-weight:bold;
-  background:var(--timer-bg);
-  color:var(--timer-txt);
-  border:3px groove #888;
+.status {
+  margin-top: 20px;
+  font-size: 18px;
+  text-align: center;
+  font-weight: bold;
+  color: #27ae60;
 }
 
-.btn-row{
-  display:flex;
-  gap:10px;
-  margin-top:10px;
+.cronometro {
+  text-align: center;
+  font-size: 22px;
+  margin-top: 10px;
+  font-weight: bold;
+  color: #c0392b;
 }
 
-.btn-col{
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-  margin:10px 0;
+.hidden {
+  display: none;
 }
 
-/* Botões grandes e acessíveis */
-button{
-  flex:1;
-  padding:14px 10px;
-  font-size:18px;
-  font-weight:bold;
-  border:2px outset var(--border-light);
-  background:#d0d0d0;
-  cursor:pointer;
-  box-shadow:2px 2px 0 #333;
+#relatorio {
+  list-style: none;
+  padding: 0;
 }
 
-button:disabled{
-  background:#a0a0a0;
-  color:#555;
-  cursor:not-allowed;
-}
-
-.alert{
-  margin:16px 0;
-  padding:16px;
-  text-align:center;
-  background:#ffff88;
-  border:3px solid red;
-}
-
-.alert h2{
-  margin:0 0 10px 0;
-  font-size:22px;
-}
-
-.hidden{ display:none; }
-
-.reports{
-  margin-top:16px;
-  padding:10px;
-  background:#fff;
-  border:2px inset #aaa;
-}
-
-.reports h3{
-  margin:0 0 10px 0;
-  text-align:center;
-}
-
-#listaRelatorios{
-  list-style:none;
-  padding:0;
-  margin:0;
-}
-
-#listaRelatorios li{
-  padding:8px;
-  border-bottom:1px dashed #999;
-  font-size:14px;
-}
-
-/* Responsividade mobile: itens ocupam ~90% da largura, coluna única e espaçados */
-@media (max-width: 640px){
-  .window{
-    width:95%;
-  }
-  button{
-    width:100%;
-  }
-  .btn-row{
-    flex-direction:column;
-  }
+#relatorio li {
+  background: #ecf0f1;
+  margin: 8px 0;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 14px;
 }
