@@ -1,38 +1,54 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema de Ronda - Vigilantes</title>
-  <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Ronda - Vigilantes</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="container">
-    <h1>Sistema de Controle de Ronda</h1>
+    <div class="container">
+        <h2>Sistema de Ronda - Vigilantes</h2>
 
-    <label for="posto">Nome do Posto:</label>
-    <input type="text" id="posto" placeholder="Digite o nome do posto">
+        <label for="posto">Nome do Posto:</label>
+        <input type="text" id="posto" placeholder="Digite o nome do posto">
 
-    <label for="tempoPreparacao">Preparação da Início da Ronda (min):</label>
-    <input type="number" id="tempoPreparacao" placeholder="Ex: 5">
+        <label for="tempo">Preparação da Início da Ronda (min):</label>
+        <input type="number" id="tempo" min="1" placeholder="Tempo de preparação">
 
-    <button id="iniciarRonda">Iniciar Preparação</button>
+        <button id="ajustar">Ajustar Cronômetro</button>
 
-    <div id="statusRonda" class="status"></div>
-    <div id="cronometro" class="cronometro"></div>
+        <div class="cronometro">
+            <h3 id="contador">00:00</h3>
+        </div>
 
-    <button id="finalizarRonda" class="hidden">Finalizar a Ronda</button>
+        <div class="botoes">
+            <button id="iniciar" disabled>Iniciar</button>
+            <button id="pausar" disabled>Pausar</button>
+            <button id="zerar" disabled>Zerar</button>
+            <button id="finalizar" disabled>Finalizar a Ronda</button>
+            <button id="gerar" disabled>Gerar Relatório</button>
+        </div>
 
-    <div id="observacaoContainer" class="hidden">
-      <label for="observacao">Observação da Ronda (obrigatório):</label>
-      <textarea id="observacao" rows="4" placeholder="Descreva o que foi observado na ronda..."></textarea>
-      <button id="salvarRonda">Salvar registro de Ronda</button>
+        <div id="observacao-container" class="hidden">
+            <label for="observacao">Observação da Ronda:</label>
+            <textarea id="observacao" placeholder="Digite a observação da ronda"></textarea>
+            <button id="salvar">Salvar registro de Ronda</button>
+        </div>
+
+        <div id="relatorios-container" class="hidden">
+            <h3>Relatórios de Ronda</h3>
+            <ul id="relatorios"></ul>
+
+            <button id="imprimir">Imprimir Relatórios</button>
+            <p id="limpar-relatorios">limpar relatórios</p>
+        </div>
     </div>
 
-    <h2>Relatório de Rondas</h2>
-    <ul id="relatorio"></ul>
-  </div>
-
-  <script src="script.js"></script>
+    <footer>
+        Desenvolvedor: Silvio Marques de Santana Neto, Analista e Desenvolvedor de Sistemas 2025.
+    </footer>
+    <script src="script.js"></script>
+    <script src="analytics.js"></script>
 </body>
 </html>
