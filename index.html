@@ -11,15 +11,15 @@
 
         <h1>Sistema de Ronda</h1>
         <p class="info">Versão V.07 - 15/08/2025</p>
-        <p class="info">Desenvolvedor: Silvio Marques de Santana Neto</p>
+        
 
         <label for="posto">Nome do Posto:</label>
         <input type="text" id="posto" placeholder="Digite o nome do posto">
 
-        <label for="observacao">Observação da Ronda:</label>
+        <br></b><label for="observacao">Observação da Ronda:</label>
         <textarea id="observacao" rows="3" placeholder="Digite observações da ronda finalizada"></textarea>
 
-        <label for="tempo">Tempo da Ronda (minutos):</label>
+        <br><label for="tempo">Tempo da Ronda (minutos):</label>
         <input type="number" id="tempo" min="1" value="5">
 
         <div id="cronometro">00:00</div>
@@ -43,7 +43,7 @@
             <button id="limpar">❌ Limpar Histórico</button>
         </div>
     </div>
-
+    <p class="info">Desenvolvedor: Silvio Marques de Santana Neto</p>
     <audio id="somAlerta" src="alerta.mp3" preload="auto"></audio>
     <script src="script.js"></script>
 </body>
