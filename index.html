@@ -1,59 +1,36 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Ronda - V.07</title>
-    <link rel="stylesheet" href="style.css">
-    <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-G9L7PP048X"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-G9L7PP048X');
-</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Ronda - Anos 90</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
+  <div class="container">
+    <h1>Sistema de Ronda</h1>
 
-        <h1>Sistema de Ronda</h1>
-        <p class="info">Versão V.07 - 15/08/2025</p>
-        
+    <label for="posto">Nome do Posto:</label>
+    <input type="text" id="posto" placeholder="Digite o nome do posto">
 
-        <label for="posto">Nome do Posto:</label>
-        <input type="text" id="posto" placeholder="Digite o nome do posto">
+    <label for="tempo">Tempo (minutos):</label>
+    <input type="number" id="tempo" min="1" max="120" value="5">
 
-        <br><label for="observacao">Observação da Ronda:</label>
-        <p><textarea id="observacao" rows="3" placeholder="Digite observações da ronda finalizada"></textarea></p>
+    <div id="cronometro">00:00</div>
 
-        <br><label for="tempo">Tempo da Ronda (minutos):</label>
-        <p><input type="number" id="tempo" min="1" value="5"></p>
-
-        <center><div id="cronometro">00:00</div></center>
-
-        <div class="buttons">
-            <button id="play">▶ Iniciar</button>
-            <button id="zerar" disabled>⏹ Zerar</button>
-            <button id="finalizar" disabled>✅ Finalizar</button>
-            <button id="relatorio" disabled>📄 Relatório</button>
-        </div>
-
-        <div id="alerta" class="hidden">
-            <h2>⏰ Hora da Ronda!</h2>
-            <button id="confirmarRonda">Iniciar Ronda Agora</button>
-        </div>
-
-        <div id="historico">
-            <h3>Histórico de Rond as</h3>
-            <ul id="listaHistorico"></ul>
-            <button id="imprimir">🖨️ Imprimir / Compartilhar</button>
-            <button id="limpar">❌ Limpar Histórico</button>
-        </div>
+    <div class="buttons">
+      <button id="playBtn">▶ Iniciar</button>
+      <button id="stopBtn" disabled>⏹ Finalizar</button>
+      <button id="resetBtn" disabled>⏹ Zerar</button>
+      <button id="reportBtn" disabled>📄 Gerar Relatório</button>
     </div>
-    <p class="info">Desenvolvedor: Silvio Marques de Santana Neto</p>
-    <audio id="somAlerta" src="alerta.mp3" preload="auto"></audio>
-    <script src="script.js"></script>
+
+    <label for="observacao">Observação da Ronda:</label>
+    <textarea id="observacao" placeholder="Digite sua observação aqui..."></textarea>
+  </div>
+
+  <script src="script.js"></script>
+  <!-- Google Analytics (externo) -->
+  <script src="analytics.js"></script>
 </body>
 </html>
