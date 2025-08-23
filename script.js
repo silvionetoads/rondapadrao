@@ -1,84 +1,220 @@
-let timer;
-let tempoRestante;
-let emContagem = false;
+// Estados e elementos
+let countdownInterval = null;
+let rondaInterval = null;
 
-const cronometro = document.getElementById("cronometro");
-const play = document.getElementById("play");
-const zerar = document.getElementById("zerar");
-const finalizar = document.getElementById("finalizar");
-const relatorio = document.getElementById("relatorio");
-const alerta = document.getElementById("alerta");
-const confirmarRonda = document.getElementById("confirmarRonda");
-const somAlerta = document.getElementById("somAlerta");
-const listaHistorico = document.getElementById("listaHistorico");
-const imprimir = document.getElementById("imprimir");
-const limpar = document.getElementById("limpar");
+let tempoProgramadoSeg = 0;   // tempo ajustado (segundos)
+let restanteSeg = 0;          // restante da regressiva
+let rondaSeg = 0;             // cronômetro progressivo da ronda
+let estado = "inicial";       // inicial | ajustado | regressivo | zerou | ronda
 
-function formatarTempo(segundos) {
-    const min = String(Math.floor(segundos / 60)).padStart(2, "0");
-    const sec = String(segundos % 60).padStart(2, "0");
-    return `${min}:${sec}`;
+// Elementos da UI
+const inputPosto = document.getElementById("posto");
+const inputTempo = document.getElementById("tempo");
+const inputObs   = document.getElementById("observacao");
+
+const btnAjustar   = document.getElementById("btnAjustar");
+const btnIniciar   = document.getElementById("btnIniciar");
+const btnPausar    = document.getElementById("btnPausar");
+const btnZerar     = document.getElementById("btnZerar");
+const btnRelatorio = document.getElementById("btnRelatorio");
+
+const display  = document.getElementById("display");
+const alerta   = document.getElementById("alerta");
+const btnConfirmarRonda = document.getElementById("btnConfirmarRonda");
+
+const alertSound = document.getElementById("alertSound");
+
+const listaRelatorios = document.getElementById("listaRelatorios");
+
+const STORAGE_KEY = "relatoriosRondaV07";
+
+// Util
+function formatMMSS(totalSeg){
+  const m = String(Math.floor(totalSeg / 60)).padStart(2,"0");
+  const s = String(totalSeg % 60).padStart(2,"0");
+  return `${m}:${s}`;
 }
 
-play.addEventListener("click", () => {
-    const tempo = parseInt(document.getElementById("tempo").value) * 60;
-    if (isNaN(tempo) || tempo <= 0) return;
+function setDisplay(seg){ display.textContent = formatMMSS(seg); }
 
-    tempoRestante = tempo;
-    emContagem = true;
+// Controle de botões conforme estado
+function applyState(newState){
+  estado = newState;
 
-    play.disabled = true;
-    zerar.disabled = true;
-    relatorio.disabled = true;
-    finalizar.disabled = true;
+  if(estado === "inicial"){
+    btnAjustar.disabled = false;
+    btnIniciar.disabled = true;
+    btnPausar.disabled  = true;
+    btnZerar.disabled   = true;
+    btnRelatorio.disabled = true;
+  }
 
-    timer = setInterval(() => {
-        tempoRestante--;
-        cronometro.textContent = formatarTempo(tempoRestante);
+  if(estado === "ajustado"){
+    btnAjustar.disabled = false;
+    btnIniciar.disabled = false;
+    btnPausar.disabled  = true;
+    btnZerar.disabled   = true;
+    btnRelatorio.disabled = true;
+  }
 
-        if (tempoRestante <= 0) {
-            clearInterval(timer);
-            somAlerta.play();
-            alerta.classList.remove("hidden");
-        }
+  if(estado === "regressivo"){
+    btnAjustar.disabled = true;
+    btnIniciar.disabled = true;
+    // Especificação: manter pausar/zerar/relatório desabilitados durante regressivo
+    btnPausar.disabled  = true;
+    btnZerar.disabled   = true;
+    btnRelatorio.disabled = true;
+  }
+
+  if(estado === "zerou"){
+    // Tempo zerou: habilitar pausar/zerar/relatório
+    btnAjustar.disabled = true;
+    btnIniciar.disabled = true;
+    btnPausar.disabled  = false;
+    btnZerar.disabled   = false;
+    btnRelatorio.disabled = false;
+  }
+
+  if(estado === "ronda"){
+    // Em ronda (progressivo): pausar/zerar/relatório habilitados
+    btnAjustar.disabled = true;
+    btnIniciar.disabled = true;
+    btnPausar.disabled  = false;
+    btnZerar.disabled   = false;
+    btnRelatorio.disabled = false;
+  }
+}
+
+// Fluxo
+function ajustarCronometro(){
+  const min = parseInt(inputTempo.value, 10);
+  if(isNaN(min) || min < 1) return;
+
+  const san = Math.min(Math.max(min,1), 60); // clamp 1..60
+  tempoProgramadoSeg = san * 60;
+  restanteSeg = tempoProgramadoSeg;
+  clearInterval(countdownInterval);
+  clearInterval(rondaInterval);
+  setDisplay(restanteSeg);
+  alerta.classList.add("hidden");
+  applyState("ajustado");
+}
+
+function iniciarRegressivo(){
+  if(tempoProgramadoSeg <= 0) return;
+  restanteSeg = tempoProgramadoSeg;
+  setDisplay(restanteSeg);
+  applyState("regressivo");
+
+  clearInterval(countdownInterval);
+  countdownInterval = setInterval(() => {
+    restanteSeg--;
+    setDisplay(restanteSeg);
+
+    if(restanteSeg <= 0){
+      clearInterval(countdownInterval);
+      setDisplay(0);
+      // toca som e mostra alerta de início de ronda
+      try { alertSound.currentTime = 0; alertSound.play(); } catch(e){}
+      alerta.classList.remove("hidden");
+      applyState("zerou");
+    }
+  }, 1000);
+}
+
+function confirmarRonda(){
+  alerta.classList.add("hidden");
+  rondaSeg = 0;
+  setDisplay(rondaSeg);
+  applyState("ronda");
+
+  clearInterval(rondaInterval);
+  rondaInterval = setInterval(() => {
+    rondaSeg++;
+    setDisplay(rondaSeg);
+  }, 1000);
+
+  // Muda texto do botão pausar para alternar Pausar/Retomar
+  btnPausar.textContent = "⏸️ Pausar";
+  btnPausar.dataset.paused = "false";
+}
+
+function pausarOuRetomar(){
+  if(estado !== "ronda") return;
+
+  const paused = btnPausar.dataset.paused === "true";
+  if(!paused){
+    // Pausar
+    clearInterval(rondaInterval);
+    btnPausar.textContent = "▶ Retomar";
+    btnPausar.dataset.paused = "true";
+  } else {
+    // Retomar
+    clearInterval(rondaInterval);
+    rondaInterval = setInterval(() => {
+      rondaSeg++;
+      setDisplay(rondaSeg);
     }, 1000);
-});
+    btnPausar.textContent = "⏸️ Pausar";
+    btnPausar.dataset.paused = "false";
+  }
+}
 
-confirmarRonda.addEventListener("click", () => {
-    alerta.classList.add("hidden");
-    finalizar.disabled = false;
-});
+function zerarTudo(){
+  clearInterval(countdownInterval);
+  clearInterval(rondaInterval);
+  tempoProgramadoSeg = 0;
+  restanteSeg = 0;
+  rondaSeg = 0;
+  setDisplay(0);
+  alerta.classList.add("hidden");
+  inputTempo.disabled = false;
+  applyState("inicial");
+}
 
-finalizar.addEventListener("click", () => {
-    emContagem = false;
-    play.disabled = false;
-    zerar.disabled = false;
-    relatorio.disabled = false;
-    finalizar.disabled = true;
+function gerarRelatorio(){
+  const posto = (inputPosto.value || "Sem nome").trim();
+  const obs   = (inputObs.value || "Sem observações").trim();
+  const minutosProgramados = Math.floor((tempoProgramadoSeg || 0)/60);
 
-    const posto = document.getElementById("posto").value || "Sem Nome";
-    const obs = document.getElementById("observacao").value || "Sem Observação";
-    const data = new Date().toLocaleString();
+  const rel = {
+    data: new Date().toLocaleString("pt-BR"),
+    posto,
+    tempoRondaMin: minutosProgramados,
+    observacao: obs
+  };
 
-    const item = document.createElement("li");
-    item.textContent = `[${data}] Posto: ${posto} | Observação: ${obs}`;
-    listaHistorico.appendChild(item);
-});
+  const lista = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  lista.push(rel);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(lista));
 
-zerar.addEventListener("click", () => {
-    clearInterval(timer);
-    cronometro.textContent = "00:00";
-    emContagem = false;
-    play.disabled = false;
-});
+  renderRelatorios(lista);
 
-imprimir.addEventListener("click", () => {
-    const conteudo = document.getElementById("historico").innerHTML;
-    const w = window.open("", "", "width=600,height=400");
-    w.document.write("<h1>Histórico de Rond as</h1>" + conteudo);
-    w.print();
-});
+  // feedback visual 90s (sem toast moderno)
+  alert("Relatório salvo no navegador.");
+}
 
-limpar.addEventListener("click", () => {
-    listaHistorico.innerHTML = "";
-});
+function renderRelatorios(lista){
+  listaRelatorios.innerHTML = "";
+  lista.forEach((r, idx) => {
+    const li = document.createElement("li");
+    li.textContent = `[${r.data}] Posto: ${r.posto} | Tempo: ${r.tempoRondaMin} min | Obs: ${r.observacao}`;
+    listaRelatorios.appendChild(li);
+  });
+}
+
+// Eventos
+btnAjustar.addEventListener("click", ajustarCronometro);
+btnIniciar.addEventListener("click", iniciarRegressivo);
+btnConfirmarRonda.addEventListener("click", confirmarRonda);
+btnPausar.addEventListener("click", pausarOuRetomar);
+btnZerar.addEventListener("click", zerarTudo);
+btnRelatorio.addEventListener("click", gerarRelatorio);
+
+// Inicialização
+(function init(){
+  setDisplay(0);
+  applyState("inicial");
+  const lista = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  renderRelatorios(lista);
+})();
