@@ -1,65 +1,50 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema de Ronda - V.07</title>
-  <link rel="stylesheet" href="styles.css">
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-G9L7PP048X"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-G9L7PP048X');
-</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Ronda - V.07</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
+    <div class="container">
 
-    <h1>Sistema de Ronda - V.07</h1>
-    <p class="dev-info">Desenvolvedor: Silvio Marques de Santana Neto - Analista e Desenvolvedor de Sistemas<br>
-      Data: 15/08/2025</p>
+        <h1>Sistema de Ronda</h1>
+        <p class="info">Versão V.07 - 15/08/2025</p>
+        <p class="info">Desenvolvedor: Silvio Marques de Santana Neto</p>
 
-    <!-- Ajuste do Cronômetro -->
-    <div class="timer-config">
-      <label for="timeInput">Definir tempo da ronda (minutos):</label>
-      <input type="number" id="timeInput" min="1" value="5">
-      <button id="setTimerBtn">Definir</button>
+        <label for="posto">Nome do Posto:</label>
+        <input type="text" id="posto" placeholder="Digite o nome do posto">
+
+        <label for="observacao">Observação da Ronda:</label>
+        <textarea id="observacao" rows="3" placeholder="Digite observações da ronda finalizada"></textarea>
+
+        <label for="tempo">Tempo da Ronda (minutos):</label>
+        <input type="number" id="tempo" min="1" value="5">
+
+        <div id="cronometro">00:00</div>
+
+        <div class="buttons">
+            <button id="play">▶ Iniciar</button>
+            <button id="zerar" disabled>⏹ Zerar</button>
+            <button id="finalizar" disabled>✅ Finalizar</button>
+            <button id="relatorio" disabled>📄 Relatório</button>
+        </div>
+
+        <div id="alerta" class="hidden">
+            <h2>⏰ Hora da Ronda!</h2>
+            <button id="confirmarRonda">Iniciar Ronda Agora</button>
+        </div>
+
+        <div id="historico">
+            <h3>Histórico de Rond as</h3>
+            <ul id="listaHistorico"></ul>
+            <button id="imprimir">🖨️ Imprimir / Compartilhar</button>
+            <button id="limpar">❌ Limpar Histórico</button>
+        </div>
     </div>
 
-    <!-- Exibição do Cronômetro -->
-    <div id="timerDisplay">00:00</div>
-    <div class="buttons">
-      <button id="startBtn">Iniciar</button>
-      <button id="pauseBtn">Pausar</button>
-      <button id="resetBtn">Zerar</button>
-    </div>
-
-    <!-- Mensagem de alerta quando o cronômetro zerar -->
-    <div id="alertMessage" class="hidden">
-      <h2>⚠️ Iniciar Ronda Agora!</h2>
-      <button id="confirmRondaBtn">Confirmar Início</button>
-    </div>
-
-    <!-- Histórico -->
-    <div id="history">
-      <h2>Histórico de Ronda</h2>
-      <ul id="historyList"></ul>
-    </div>
-
-    <!-- Ações adicionais -->
-    <div class="extra-actions">
-      <button id="printHistoryBtn">🖨️ Imprimir/Compartilhar Histórico</button>
-      <button id="clearHistoryBtn" class="small-btn">Limpar Histórico</button>
-    </div>
-
-  </div>
-
-  <!-- Áudio de Alerta -->
-  <audio id="alertSound" src="alerta1.mp3" preload="auto"></audio>
-
-  <script src="script.js"></script>
+    <audio id="somAlerta" src="alerta.mp3" preload="auto"></audio>
+    <script src="script.js"></script>
 </body>
 </html>
