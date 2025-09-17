@@ -1,335 +1,138 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Rondas do Vigilante</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rondas do Vigilante v.001</title>
   <style>
-    :root{--bg:#f5f7fb;--card:#fff;--accent:#0b67ff;--muted:#6b7280}
-    body{font-family:Inter,system-ui,Arial,Helvetica,sans-serif;background:var(--bg);margin:0;padding:24px;color:#111}
-    .container{max-width:980px;margin:0 auto}
-    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
-    h1{font-size:20px;margin:0}
-    .card{background:var(--card);padding:18px;border-radius:12px;box-shadow:0 6px 18px rgba(16,24,40,0.04);}
-    .grid{display:grid;gap:12px}
-    .two{grid-template-columns:1fr 1fr}
-    label{display:block;font-size:13px;margin-bottom:6px;color:var(--muted)}
-    input[type=text], textarea, input[type=number], select{width:100%;padding:10px;border:1px solid #e6e9ef;border-radius:8px;font-size:14px}
-    textarea{min-height:80px;resize:vertical}
-    .controls{display:flex;gap:10px;flex-wrap:wrap}
-    button{background:var(--accent);color:white;border:0;padding:10px 14px;border-radius:10px;font-weight:600;cursor:pointer}
-    button.secondary{background:#eef2ff;color:var(--accent);border:1px solid rgba(11,103,255,0.1)}
-    .timer{font-size:36px;font-weight:700;letter-spacing:1px}
-    .small{font-size:13px;color:var(--muted)}
-    .history{margin-top:14px;max-height:300px;overflow:auto}
-    table{width:100%;border-collapse:collapse;font-size:13px}
-    th,td{padding:8px;border-bottom:1px solid #f0f2f5;text-align:left}
-    th{background:#fafbff;position:sticky;top:0}
-    .row-actions{display:flex;gap:8px}
-    .muted{color:var(--muted)}
-    footer{margin-top:18px;text-align:right}
-    @media(max-width:700px){.two{grid-template-columns:1fr} .controls{flex-direction:column}}
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f9; }
+    h1 { text-align: center; }
+    .container { max-width: 700px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    label { display: block; margin-top: 10px; font-weight: bold; }
+    input, textarea, select { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px; }
+    button { margin: 5px 5px 5px 0; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; }
+    #timer { font-size: 2em; text-align: center; margin: 20px 0; }
+    .history { margin-top: 20px; }
+    .record { border-bottom: 1px solid #ddd; padding: 10px 0; }
   </style>
 </head>
 <body>
   <div class="container">
-    <header>
-      <h1>Rondas do Vigilante</h1>
-      <div class="small">Sistema leve (HTML/CSS/JS) — armazena no armazenamento temporário do navegador</div>
-    </header>
+    <h1>Rondas do Vigilante</h1>
 
-    <section class="card">
-      <div class="grid two">
-        <div>
-          <label>Tempo de descanso (minutos)</label>
-          <input id="restMinutes" type="number" min="0" step="1" value="5" />
-        </div>
-        <div>
-          <label>Tempo de ronda (auto calculado ao iniciar/finalizar)</label>
-          <div class="small">Você inicia a ronda quando desejar — o sistema registra hora inicial e final.</div>
-        </div>
-      </div>
+    <label for="restTime">Tempo de descanso (minutos):</label>
+    <input type="number" id="restTime" min="1" placeholder="Informe minutos">
+    <div id="timer">00:00</div>
 
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;gap:12px;flex-wrap:wrap">
-        <div>
-          <div class="timer" id="countdown">00:00</div>
-          <div class="small">Status: <span id="status" class="muted">Parado</span></div>
-        </div>
+    <button id="startRest">Iniciar Descanso</button>
+    <button id="stopRest">Parar</button>
+    <button id="resetRest">Reset</button>
 
-        <div class="controls">
-          <button id="startRestBtn">Iniciar Descanso</button>
-          <button id="stopRestBtn" class="secondary" disabled>Parar</button>
-          <button id="resetRestBtn" class="secondary" disabled>Reset</button>
-        </div>
-      </div>
+    <label for="vigilante">Nome do Vigilante:</label>
+    <input type="text" id="vigilante">
 
-      <hr style="margin:14px 0;border:none;border-top:1px solid #f0f2f5" />
+    <label for="posto">Nome do Posto:</label>
+    <input type="text" id="posto">
 
-      <div class="grid two">
-        <div>
-          <label>Nome do Vigilante</label>
-          <input id="guardName" type="text" placeholder="Ex: João Silva" />
-        </div>
-        <div>
-          <label>Posto da ronda</label>
-          <input id="postName" type="text" placeholder="Ex: Portaria Norte" />
-        </div>
-      </div>
+    <label for="obs">Observações:</label>
+    <textarea id="obs"></textarea>
 
-      <div style="margin-top:12px">
-        <label>Observações</label>
-        <textarea id="observations" placeholder="Escreva observações da ronda..."></textarea>
-      </div>
+    <button id="startRonda">Iniciar Ronda</button>
+    <button id="endRonda">Finalizar Ronda</button>
+    <button id="save">Salvar Informações</button>
 
-      <div style="margin-top:12px;display:flex;gap:10px;align-items:center">
-        <button id="saveBtn" disabled>Salvar Informações</button>
-        <button id="startRondaBtn" class="secondary" disabled>Iniciar Ronda (marca hora inicial)</button>
-        <button id="endRondaBtn" class="secondary" disabled>Finalizar Ronda (marca hora final)</button>
-        <div class="small muted">Armazenamento: <span id="storageType">sessionStorage</span></div>
-      </div>
+    <div class="history">
+      <h3>Histórico</h3>
+      <div id="records"></div>
+    </div>
 
-      <div class="history card" style="margin-top:12px;padding:12px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <strong>Histórico de Rondas (temporário)</strong>
-          <div>
-            <button id="printReportBtn" class="secondary">Imprimir Relatório</button>
-            <button id="exportJsonBtn" class="secondary">Exportar JSON</button>
-            <button id="clearBtn" class="secondary">Limpar Histórico</button>
-          </div>
-        </div>
-        <div id="historyList"></div>
-      </div>
-
-      <footer>
-        <div class="small muted">Observação: os dados são salvos no armazenamento temporário (sessionStorage). Fechar a aba limpa os dados.</div>
-      </footer>
-    </section>
+    <button id="printReport">Imprimir Relatório</button>
+    <button id="exportJSON">Exportar JSON</button>
+    <button id="clearHistory">Limpar Histórico</button>
   </div>
 
   <script>
-    const STORAGE_KEY = 'rondas_vigilante_temp'
+    let timerInterval;
+    let restSeconds = 0;
+    let rondaInicio = null;
 
-    const restMinutesEl = document.getElementById('restMinutes')
-    const countdownEl = document.getElementById('countdown')
-    const statusEl = document.getElementById('status')
-    const startRestBtn = document.getElementById('startRestBtn')
-    const stopRestBtn = document.getElementById('stopRestBtn')
-    const resetRestBtn = document.getElementById('resetRestBtn')
-
-    const guardNameEl = document.getElementById('guardName')
-    const postNameEl = document.getElementById('postName')
-    const observationsEl = document.getElementById('observations')
-    const saveBtn = document.getElementById('saveBtn')
-    const startRondaBtn = document.getElementById('startRondaBtn')
-    const endRondaBtn = document.getElementById('endRondaBtn')
-
-    const historyListEl = document.getElementById('historyList')
-    const printReportBtn = document.getElementById('printReportBtn')
-    const exportJsonBtn = document.getElementById('exportJsonBtn')
-    const clearBtn = document.getElementById('clearBtn')
-
-    let countdownInterval = null
-    let remainingSeconds = 0
-    let restRunning = false
-
-    let currentRonda = null
-
-    function fmt(sec){
-      sec = Math.max(0, Math.floor(sec))
-      const m = Math.floor(sec/60).toString().padStart(2,'0')
-      const s = (sec%60).toString().padStart(2,'0')
-      return `${m}:${s}`
+    function updateTimerDisplay() {
+      let m = String(Math.floor(restSeconds / 60)).padStart(2, '0');
+      let s = String(restSeconds % 60).padStart(2, '0');
+      document.getElementById('timer').textContent = `${m}:${s}`;
     }
 
-    function playBeep(){
-      try{
-        const ctx = new (window.AudioContext || window.webkitAudioContext)()
-        const o = ctx.createOscillator()
-        const g = ctx.createGain()
-        o.connect(g); g.connect(ctx.destination)
-        o.type = 'sine'; o.frequency.value = 880
-        g.gain.value = 0.1
-        o.start()
-        setTimeout(()=>{ o.stop(); ctx.close() }, 600)
-      }catch(e){ console.log('Beep failed', e) }
-    }
-
-    function notify(text){
-      if(Notification && Notification.permission === 'granted'){
-        new Notification('Rondas do Vigilante', {body:text})
-      }
-    }
-
-    function startRest(){
-      const minutes = Number(restMinutesEl.value) || 0
-      remainingSeconds = Math.max(0, Math.floor(minutes*60))
-      if(remainingSeconds <= 0) {
-        alert('Defina um tempo de descanso maior que 0 minutos.')
-        return
-      }
-      restRunning = true
-      statusEl.textContent = 'Descansando'
-      startRestBtn.disabled = true
-      stopRestBtn.disabled = false
-      resetRestBtn.disabled = false
-      countdownEl.textContent = fmt(remainingSeconds)
-      countdownInterval = setInterval(()=>{
-        remainingSeconds -= 1
-        countdownEl.textContent = fmt(remainingSeconds)
-        if(remainingSeconds <= 0){
-          stopRest(true)
+    document.getElementById('startRest').onclick = () => {
+      const minutes = parseInt(document.getElementById('restTime').value);
+      if (!minutes) return alert('Informe o tempo de descanso!');
+      restSeconds = minutes * 60;
+      updateTimerDisplay();
+      timerInterval = setInterval(() => {
+        if (restSeconds > 0) {
+          restSeconds--;
+          updateTimerDisplay();
+        } else {
+          clearInterval(timerInterval);
+          alert('Tempo de descanso finalizado!');
         }
-      },1000)
+      }, 1000);
+    };
+
+    document.getElementById('stopRest').onclick = () => clearInterval(timerInterval);
+    document.getElementById('resetRest').onclick = () => { clearInterval(timerInterval); restSeconds = 0; updateTimerDisplay(); };
+
+    document.getElementById('startRonda').onclick = () => { rondaInicio = new Date().toLocaleString(); alert('Ronda iniciada.'); };
+    document.getElementById('endRonda').onclick = () => alert('Ronda finalizada.');
+
+    document.getElementById('save').onclick = () => {
+      const vigilante = document.getElementById('vigilante').value;
+      const posto = document.getElementById('posto').value;
+      const obs = document.getElementById('obs').value;
+      const rondaFim = new Date().toLocaleString();
+
+      const record = { data: new Date().toLocaleString(), vigilante, posto, obs, inicio: rondaInicio, fim: rondaFim, descanso: document.getElementById('restTime').value };
+
+      let records = JSON.parse(sessionStorage.getItem('records') || '[]');
+      records.push(record);
+      sessionStorage.setItem('records', JSON.stringify(records));
+
+      renderRecords();
+    };
+
+    function renderRecords() {
+      const records = JSON.parse(sessionStorage.getItem('records') || '[]');
+      const container = document.getElementById('records');
+      container.innerHTML = '';
+      records.forEach((r, i) => {
+        container.innerHTML += `<div class="record">${i+1}. [${r.data}] Vigilante: ${r.vigilante}, Posto: ${r.posto}, Início: ${r.inicio}, Fim: ${r.fim}, Descanso: ${r.descanso} min, Obs: ${r.obs}</div>`;
+      });
     }
 
-    function stopRest(endedByTimer=false){
-      restRunning = false
-      statusEl.textContent = endedByTimer ? 'Descanso finalizado' : 'Parado'
-      startRestBtn.disabled = false
-      stopRestBtn.disabled = true
-      clearInterval(countdownInterval)
-      countdownInterval = null
-      if(endedByTimer){
-        playBeep()
-        notify('Tempo de descanso encerrado.')
-        enableInputs()
-      }
-    }
+    document.getElementById('printReport').onclick = () => {
+      const records = JSON.parse(sessionStorage.getItem('records') || '[]');
+      let content = '<h1>Relatório de Rondas</h1>';
+      records.forEach((r, i) => {
+        content += `<p>${i+1}. [${r.data}] Vigilante: ${r.vigilante}, Posto: ${r.posto}, Início: ${r.inicio}, Fim: ${r.fim}, Descanso: ${r.descanso} min, Obs: ${r.obs}</p>`;
+      });
+      const win = window.open('', '', 'width=800,height=600');
+      win.document.write(content);
+      win.print();
+    };
 
-    function resetRest(){
-      clearInterval(countdownInterval)
-      countdownInterval = null
-      remainingSeconds = 0
-      countdownEl.textContent = '00:00'
-      restRunning = false
-      statusEl.textContent = 'Parado'
-      startRestBtn.disabled = false
-      stopRestBtn.disabled = true
-      resetRestBtn.disabled = true
-    }
+    document.getElementById('exportJSON').onclick = () => {
+      const records = sessionStorage.getItem('records');
+      const blob = new Blob([records], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'rondas.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    };
 
-    function loadHistory(){
-      const raw = sessionStorage.getItem(STORAGE_KEY)
-      if(!raw) return []
-      try{ return JSON.parse(raw) }catch(e){ return [] }
-    }
-    function saveHistory(arr){ sessionStorage.setItem(STORAGE_KEY, JSON.stringify(arr)) }
+    document.getElementById('clearHistory').onclick = () => { sessionStorage.removeItem('records'); renderRecords(); };
 
-    function appendRecord(record){
-      const arr = loadHistory()
-      arr.unshift(record)
-      saveHistory(arr)
-      renderHistory()
-    }
-
-    function renderHistory(){
-      const arr = loadHistory()
-      if(arr.length === 0){ historyListEl.innerHTML = '<div class="small muted">Nenhuma ronda registrada.</div>'; return }
-      let html = '<table><thead><tr><th>Data / Hora</th><th>Vigilante</th><th>Posto</th><th>Início</th><th>Fim</th><th>Descanso</th><th>Observação</th><th></th></tr></thead><tbody>'
-      arr.forEach((r, idx)=>{
-        html += `<tr>
-          <td>${r.savedAt}</td>
-          <td>${escapeHtml(r.guardName||'')}</td>
-          <td>${escapeHtml(r.postName||'')}</td>
-          <td>${r.startTime||''}</td>
-          <td>${r.endTime||''}</td>
-          <td>${r.restDuration||''}</td>
-          <td>${escapeHtml(r.observations||'')}</td>
-          <td class="row-actions"><button onclick="viewRecord(${idx})" class="secondary">Ver</button><button onclick="deleteRecord(${idx})" class="secondary">Apagar</button></td>
-        </tr>`
-      })
-      html += '</tbody></table>'
-      historyListEl.innerHTML = html
-    }
-
-    function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
-
-    window.viewRecord = function(idx){
-      const arr = loadHistory()
-      const r = arr[idx]
-      if(!r) return alert('Registro não encontrado')
-      const details = `Data: ${r.savedAt}\nVigilante: ${r.guardName}\nPosto: ${r.postName}\nInício: ${r.startTime || '-'}\nFim: ${r.endTime || '-'}\nDescanso: ${r.restDuration}\nObs: ${r.observations}`
-      alert(details)
-    }
-    window.deleteRecord = function(idx){
-      if(!confirm('Apagar este registro?')) return
-      const arr = loadHistory()
-      arr.splice(idx,1)
-      saveHistory(arr)
-      renderHistory()
-    }
-
-    saveBtn.addEventListener('click', ()=>{
-      if(!validateInputs()) return
-      const record = buildRecord()
-      appendRecord(record)
-      alert('Informações salvas temporariamente.')
-    })
-
-    function buildRecord(){
-      const now = new Date()
-      const savedAt = now.toLocaleString()
-      return {
-        savedAt,
-        guardName: guardNameEl.value.trim(),
-        postName: postNameEl.value.trim(),
-        observations: observationsEl.value.trim(),
-        restDuration: `${restMinutesEl.value} min`,
-        startTime: currentRonda && currentRonda.startTime ? currentRonda.startTime : '',
-        endTime: currentRonda && currentRonda.endTime ? currentRonda.endTime : ''
-      }
-    }
-
-    startRondaBtn.addEventListener('click', ()=>{
-      if(!validateInputs()) return
-      currentRonda = currentRonda || {}
-      currentRonda.startTime = new Date().toLocaleString()
-      startRondaBtn.disabled = true
-      endRondaBtn.disabled = false
-      alert('Ronda iniciada: ' + currentRonda.startTime)
-    })
-    endRondaBtn.addEventListener('click', ()=>{
-      if(!currentRonda || !currentRonda.startTime){ alert('Inicie a ronda primeiro.'); return }
-      if(!validateInputs()) return
-      currentRonda.endTime = new Date().toLocaleString()
-      const record = buildRecord()
-      appendRecord(record)
-      currentRonda = null
-      startRondaBtn.disabled = false
-      endRondaBtn.disabled = true
-      alert('Ronda finalizada e salva: ' + record.savedAt)
-    })
-
-    printReportBtn.addEventListener('click', ()=>{
-      const arr = loadHistory()
-      if(arr.length === 0) return alert('Nenhum registro para gerar relatório.')
-      const title = 'Relatório de Rondas - ' + new Date().toLocaleString()
-      const win = window.open('', '_blank')
-      const style = `
-        body{font-family:Arial,Helvetica,sans-serif;padding:24px;color:#111}
-        h1{font-size:18px}
-        table{width:100%;border-collapse:collapse;margin-top:12px}
-        th,td{border:1px solid #ddd;padding:8px;text-align:left}
-        th{background:#f7f7fb}
-      `
-      let html = `<!doctype html><html><head><meta charset="utf-8"><title>${title}</title><style>${style}</style></head><body>`
-      html += `<h1>${title}</h1>`
-      html += `<table><thead><tr><th>Data / Hora</th><th>Vigilante</th><th>Posto</th><th>Início</th><th>Fim</th><th>Descanso</th><th>Observação</th></tr></thead><tbody>`
-      arr.slice().reverse().forEach(r=>{
-        html += `<tr><td>${r.savedAt}</td><td>${escapeHtml(r.guardName)}</td><td>${escapeHtml(r.postName)}</td><td>${r.startTime||''}</td><td>${r.endTime||''}</td><td>${r.restDuration}</td><td>${escapeHtml(r.observations)}</td></tr>`
-      })
-      html += `</tbody></table>`
-      html += `<p class="small">Gerado em: ${new Date().toLocaleString()}</p>`
-      html += `</body></html>`
-      win.document.write(html)
-      win.document.close()
-      setTimeout(()=>{ try{ win.print() }catch(e){ console.log('print failed', e) } },500)
-    })
-
-    exportJsonBtn.addEventListener('click', ()=>{
-      const arr = loadHistory()
-      if(arr.length === 0) return alert('Nenhum registro para exportar.')
-      const blob = new Blob([JSON.stringify(arr, null, 2)], {type:'application/json'})
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href
+    renderRecords();
+  </script>
+</body>
+</html>
