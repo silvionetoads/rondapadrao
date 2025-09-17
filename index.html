@@ -59,7 +59,7 @@
         <div class="controls">
           <button id="startRestBtn">Iniciar Descanso</button>
           <button id="stopRestBtn" class="secondary" disabled>Parar</button>
-          <button id="resetRestBtn" class="secondary">Reset</button>
+          <button id="resetRestBtn" class="secondary" disabled>Reset</button>
         </div>
       </div>
 
@@ -82,8 +82,8 @@
       </div>
 
       <div style="margin-top:12px;display:flex;gap:10px;align-items:center">
-        <button id="saveBtn">Salvar Informações</button>
-        <button id="startRondaBtn" class="secondary">Iniciar Ronda (marca hora inicial)</button>
+        <button id="saveBtn" disabled>Salvar Informações</button>
+        <button id="startRondaBtn" class="secondary" disabled>Iniciar Ronda (marca hora inicial)</button>
         <button id="endRondaBtn" class="secondary" disabled>Finalizar Ronda (marca hora final)</button>
         <div class="small muted">Armazenamento: <span id="storageType">sessionStorage</span></div>
       </div>
@@ -107,10 +107,8 @@
   </div>
 
   <script>
-    // Key used in sessionStorage
     const STORAGE_KEY = 'rondas_vigilante_temp'
 
-    // Elements
     const restMinutesEl = document.getElementById('restMinutes')
     const countdownEl = document.getElementById('countdown')
     const statusEl = document.getElementById('status')
@@ -130,15 +128,12 @@
     const exportJsonBtn = document.getElementById('exportJsonBtn')
     const clearBtn = document.getElementById('clearBtn')
 
-    // Timer state
     let countdownInterval = null
     let remainingSeconds = 0
     let restRunning = false
 
-    // Ronda temporary record (in progress)
     let currentRonda = null
 
-    // Utility: format seconds to MM:SS
     function fmt(sec){
       sec = Math.max(0, Math.floor(sec))
       const m = Math.floor(sec/60).toString().padStart(2,'0')
@@ -165,7 +160,6 @@
       }
     }
 
-    // Timer controls
     function startRest(){
       const minutes = Number(restMinutesEl.value) || 0
       remainingSeconds = Math.max(0, Math.floor(minutes*60))
@@ -198,8 +192,7 @@
       if(endedByTimer){
         playBeep()
         notify('Tempo de descanso encerrado.')
-        // enable input to start ronda
-        startRondaBtn.disabled = false
+        enableInputs()
       }
     }
 
@@ -212,9 +205,9 @@
       statusEl.textContent = 'Parado'
       startRestBtn.disabled = false
       stopRestBtn.disabled = true
+      resetRestBtn.disabled = true
     }
 
-    // Storage helpers -> sessionStorage (temporário)
     function loadHistory(){
       const raw = sessionStorage.getItem(STORAGE_KEY)
       if(!raw) return []
@@ -249,10 +242,8 @@
       historyListEl.innerHTML = html
     }
 
-    // sanitize
     function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
 
-    // Expose functions to window for table buttons
     window.viewRecord = function(idx){
       const arr = loadHistory()
       const r = arr[idx]
@@ -268,8 +259,8 @@
       renderHistory()
     }
 
-    // Save form info (manual save)
     saveBtn.addEventListener('click', ()=>{
+      if(!validateInputs()) return
       const record = buildRecord()
       appendRecord(record)
       alert('Informações salvas temporariamente.')
@@ -289,8 +280,8 @@
       }
     }
 
-    // Start/End ronda buttons
     startRondaBtn.addEventListener('click', ()=>{
+      if(!validateInputs()) return
       currentRonda = currentRonda || {}
       currentRonda.startTime = new Date().toLocaleString()
       startRondaBtn.disabled = true
@@ -299,18 +290,16 @@
     })
     endRondaBtn.addEventListener('click', ()=>{
       if(!currentRonda || !currentRonda.startTime){ alert('Inicie a ronda primeiro.'); return }
+      if(!validateInputs()) return
       currentRonda.endTime = new Date().toLocaleString()
-      // build record + save
       const record = buildRecord()
       appendRecord(record)
-      // reset current ronda
       currentRonda = null
       startRondaBtn.disabled = false
       endRondaBtn.disabled = true
       alert('Ronda finalizada e salva: ' + record.savedAt)
     })
 
-    // Print report - opens printable window and calls print()
     printReportBtn.addEventListener('click', ()=>{
       const arr = loadHistory()
       if(arr.length === 0) return alert('Nenhum registro para gerar relatório.')
@@ -334,49 +323,13 @@
       html += `</body></html>`
       win.document.write(html)
       win.document.close()
-      // try to trigger print
       setTimeout(()=>{ try{ win.print() }catch(e){ console.log('print failed', e) } },500)
     })
 
-    // Export JSON
     exportJsonBtn.addEventListener('click', ()=>{
       const arr = loadHistory()
       if(arr.length === 0) return alert('Nenhum registro para exportar.')
       const blob = new Blob([JSON.stringify(arr, null, 2)], {type:'application/json'})
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
-      a.href = url
-      a.download = `rondas_${new Date().toISOString().slice(0,19)}.json`
-      a.click()
-      URL.revokeObjectURL(url)
-    })
-
-    // Clear
-    clearBtn.addEventListener('click', ()=>{
-      if(!confirm('Limpar todo o histórico (será apagado do armazenamento temporário)?')) return
-      sessionStorage.removeItem(STORAGE_KEY)
-      renderHistory()
-    })
-
-    // Buttons for rest
-    startRestBtn.addEventListener('click', startRest)
-    stopRestBtn.addEventListener('click', ()=>stopRest(false))
-    resetRestBtn.addEventListener('click', resetRest)
-
-    // On load
-    (function init(){
-      // Request notification permission for better UX
-      if('Notification' in window && Notification.permission !== 'granted'){
-        try{ Notification.requestPermission() }catch(e){}
-      }
-      renderHistory()
-      // set defaults
-      countdownEl.textContent = '00:00'
-      stopRestBtn.disabled = true
-      resetRestBtn.disabled = false
-      startRondaBtn.disabled = true // enabled only after descanso finalizado or manually by user
-      endRondaBtn.disabled = true
-    })()
-  </script>
-</body>
-</html>
+      a.href
