@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Ronda Rápida</title>
+<style>
+  body {
+    font-family: Arial;
+    text-align: center;
+    background: #111;
+    color: #fff;
+  }
+  .box {
+    margin-top: 50px;
+  }
+  button {
+    margin: 10px;
+    padding: 10px 20px;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<div class="box">
+  <h2 id="situacao"></h2>
+  <div id="opcoes"></div>
+  <p>Pontos: <span id="pontos">0</span></p>
+</div>
+
+<script>
+const eventos = [
+  {
+    texto: "Indivíduo suspeito próximo ao portão.",
+    opcoes: [
+      { texto: "Abordar", correta: false },
+      { texto: "Observar", correta: true },
+      { texto: "Ignorar", correta: false }
+    ]
+  },
+  {
+    texto: "Alarme disparou no setor B.",
+    opcoes: [
+      { texto: "Verificar local", correta: true },
+      { texto: "Desligar alarme", correta: false },
+      { texto: "Ignorar", correta: false }
+    ]
+  }
+];
+
+let pontos = Number(localStorage.getItem("pontos")) || 0;
+
+function salvar() {
+  localStorage.setItem("pontos", pontos);
+}
+
+function novoEvento() {
+  const evento = eventos[Math.floor(Math.random() * eventos.length)];
+
+  document.getElementById("situacao").innerText = evento.texto;
+
+  const opcoesDiv = document.getElementById("opcoes");
+  opcoesDiv.innerHTML = "";
+
+  evento.opcoes.forEach(op => {
+    const btn = document.createElement("button");
+    btn.innerText = op.texto;
+
+    btn.onclick = () => {
+      if (op.correta) {
+        pontos += 10;
+        alert("✔️ Ação correta!");
+      } else {
+        pontos -= 5;
+        alert("❌ Ação incorreta!");
+      }
+
+      salvar();
+      atualizar();
+      novoEvento();
+    };
+
+    opcoesDiv.appendChild(btn);
+  });
+}
+
+function atualizar() {
+  document.getElementById("pontos").innerText = pontos;
+}
+
+atualizar();
+novoEvento();
+</script>
+
+</body>
+</html>
